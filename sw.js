@@ -1,4 +1,4 @@
-const CACHE_NAME = "timebox-planner-v4";
+const CACHE_NAME = "timebox-planner-v5";
 
 const ASSETS = [
   "/timebox-planner/",
