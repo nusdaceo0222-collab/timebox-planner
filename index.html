@@ -341,6 +341,18 @@ renderAll();
 bindEvents();
 
 // --- Helpers
+function focusTodoInput(id){
+  // 렌더 후 해당 input을 다시 찾아 포커스를 복구(모바일 물방울/커서핸들 포함)
+  requestAnimationFrame(() => {
+    const row = document.querySelector(`[data-todo-row="1"][data-id="${id}"]`);
+    const input = row?.querySelector(`input[data-act="text"]`);
+    if(!input) return;
+    input.focus({ preventScroll: true });
+    // 커서를 맨 뒤로
+    const v = input.value ?? "";
+    input.setSelectionRange(v.length, v.length);
+  });
+}  
 function isoDate(d){
   const dt = new Date(d);
   dt.setHours(12,0,0,0); // avoid timezone edge
@@ -465,37 +477,70 @@ function bindEvents(){
   $("addTodo").addEventListener("click", addTodo);
 
   // Todo delegation
-  $("todoList").addEventListener("click", (e)=>{
-    const row = e.target.closest?.("[data-todo-row='1']");
-    if(!row) return;
-    const id = Number(row.dataset.id);
+  // Todo delegation (FIXED)
+$("todoList").addEventListener("click", (e) => {
+  const row = e.target.closest?.("[data-todo-row='1']");
+  if (!row) return;
+
+  const id = Number(row.dataset.id);
+
+  // ✅ 입력칸/체크박스/삭제버튼을 누를 때는 여기서 "즉시 재렌더"하지 않음
+  // (즉시 재렌더하면 포커스가 날아가서 입력이 안됨)
+  const isInput = e.target.matches("input");
+  const isButton = e.target.closest("button");
+  if (isInput || isButton) return;
+
+  activeTodoId = id;
+  renderTodos();
+});
+
+$("todoList").addEventListener("focusin", (e) => {
+  const row = e.target.closest?.("[data-todo-row='1']");
+  if (!row) return;
+
+  const id = Number(row.dataset.id);
+
+  // ✅ 입력칸을 터치하면 active로 만들고(휴지통 보이게),
+  // ✅ 재렌더 후 다시 포커스를 복구해서 파란 물방울(커서핸들)이 입력칸에 뜨게 함
+  if (activeTodoId !== id) {
     activeTodoId = id;
     renderTodos();
-  });
-  $("todoList").addEventListener("change", (e)=>{
-    const row = e.target.closest?.("[data-todo-row='1']");
-    if(!row) return;
-    const id = Number(row.dataset.id);
-    if(e.target.dataset.act === "toggle"){
-      toggleTodo(id, e.target.checked);
-    }
-  });
-  $("todoList").addEventListener("input", (e)=>{
-    const row = e.target.closest?.("[data-todo-row='1']");
-    if(!row) return;
-    const id = Number(row.dataset.id);
-    if(e.target.dataset.act === "text"){
-      updateTodoText(id, e.target.value);
-    }
-  });
-  $("todoList").addEventListener("click", (e)=>{
-    if(e.target.closest?.("[data-act='del']")){
-      const row = e.target.closest("[data-todo-row='1']");
-      const id = Number(row.dataset.id);
-      deleteTodo(id);
-      e.stopPropagation();
-    }
-  });
+    focusTodoInput(id);
+  }
+});
+
+$("todoList").addEventListener("change", (e) => {
+  const row = e.target.closest?.("[data-todo-row='1']");
+  if (!row) return;
+
+  const id = Number(row.dataset.id);
+
+  if (e.target.dataset.act === "toggle") {
+    toggleTodo(id, e.target.checked);
+  }
+});
+
+$("todoList").addEventListener("input", (e) => {
+  const row = e.target.closest?.("[data-todo-row='1']");
+  if (!row) return;
+
+  const id = Number(row.dataset.id);
+
+  if (e.target.dataset.act === "text") {
+    updateTodoText(id, e.target.value);
+  }
+});
+
+$("todoList").addEventListener("click", (e) => {
+  const delBtn = e.target.closest?.("[data-act='del']");
+  if (!delBtn) return;
+
+  const row = e.target.closest("[data-todo-row='1']");
+  const id = Number(row.dataset.id);
+  deleteTodo(id);
+  e.stopPropagation();
+});
+
 
   // Click outside todo to hide trash
   document.addEventListener("click", (e)=>{
@@ -571,6 +616,7 @@ function toggleTodo(id, checked){
   setToday({ todos });
   renderTodos();
   renderStats();
+  focusTodoInput(t.id);   // ✅ 추가: 새 항목 입력칸에 커서 + 파란 물방울 뜸
 }
 
 function updateTodoText(id, text){
