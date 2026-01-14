@@ -1,18 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  ChevronLeft, ChevronRight, Calendar, Clock, List, Brain, Plus, Trash2, X
-} from 'lucide-react';
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Clock,
+  List,
+  Brain,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 
 export default function TimeBoxPlanner() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [dailyData, setDailyData] = useState({});
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [yearlyGoals, setYearlyGoals] = useState({});
   const [monthlyGoals, setMonthlyGoals] = useState({});
-  const [activeTodoId, setActiveTodoId] = useState(null); // ✅ 항목 클릭 시 휴지통 표시용
+  const [activeTodoId, setActiveTodoId] = useState(null);
 
   // ===== Claude 스타일 아이콘 설정(크기/색상) =====
+  // ✅ Tailwind w-[${...}] 쓰지 말고, Lucide size prop 사용!
   const ICON = {
     nav: { size: 26, className: "text-gray-700" },
     calendar: { size: 24, className: "text-indigo-600" },
@@ -21,7 +32,7 @@ export default function TimeBoxPlanner() {
     clock: { size: 20, className: "text-blue-500" },
     plus: { size: 20, className: "text-gray-600" },
     trash: { size: 18, className: "text-red-500" },
-    close: { size: 20, className: "text-gray-700" }
+    close: { size: 20, className: "text-white" },
   };
 
   const motivationalQuotes = [
@@ -34,27 +45,29 @@ export default function TimeBoxPlanner() {
     "오늘의 당신을 응원합니다! 🌈",
     "완벽하지 않아도 괜찮아요! 💝",
     "할 수 있다는 믿음이 반입니다! 🌻",
-    "오늘 하루를 즐겨봐요! 🎨"
+    "오늘 하루를 즐겨봐요! 🎨",
   ];
 
   const [dailyQuote] = useState(() => {
     return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
   });
 
-  // ✅ 1시간 단위로 쓰고 싶으면 아래만 바꾸면 됨 (현재는 30분 단위 유지)
+  // ✅ (원하면 1시간 단위로 바꿀 수 있음)
+  // 1시간 단위로 하려면 아래를 사용:
+  // const timeSlots = Array.from({ length: 24 }, (_, i) => String(i).padStart(2,'0') + ':00');
   const timeSlots = [
-    '05:00', '05:30', '06:00', '06:30', '07:00', '07:30', '08:00', '08:30',
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
-    '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00', '00:30',
-    '01:00', '01:30', '02:00', '02:30', '03:00', '03:30', '04:00', '04:30'
+    "05:00","05:30","06:00","06:30","07:00","07:30","08:00","08:30",
+    "09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30",
+    "13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30",
+    "17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30",
+    "21:00","21:30","22:00","22:30","23:00","23:30","00:00","00:30",
+    "01:00","01:30","02:00","02:30","03:00","03:30","04:00","04:30"
   ];
 
   useEffect(() => {
-    const saved = localStorage.getItem('timeboxPlanner');
-    const savedYearly = localStorage.getItem('yearlyGoals');
-    const savedMonthly = localStorage.getItem('monthlyGoals');
+    const saved = localStorage.getItem("timeboxPlanner");
+    const savedYearly = localStorage.getItem("yearlyGoals");
+    const savedMonthly = localStorage.getItem("monthlyGoals");
 
     if (saved) setDailyData(JSON.parse(saved));
     if (savedYearly) setYearlyGoals(JSON.parse(savedYearly));
@@ -62,35 +75,35 @@ export default function TimeBoxPlanner() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('timeboxPlanner', JSON.stringify(dailyData));
+    localStorage.setItem("timeboxPlanner", JSON.stringify(dailyData));
   }, [dailyData]);
 
   useEffect(() => {
-    localStorage.setItem('yearlyGoals', JSON.stringify(yearlyGoals));
+    localStorage.setItem("yearlyGoals", JSON.stringify(yearlyGoals));
   }, [yearlyGoals]);
 
   useEffect(() => {
-    localStorage.setItem('monthlyGoals', JSON.stringify(monthlyGoals));
+    localStorage.setItem("monthlyGoals", JSON.stringify(monthlyGoals));
   }, [monthlyGoals]);
 
   // ✅ 바깥 클릭 시 activeTodoId 해제(휴지통 숨김)
   useEffect(() => {
     const onDocClick = (e) => {
-      // todo 줄 바깥을 클릭하면 active 해제
       const isInsideTodo = e.target.closest?.('[data-todo-row="true"]');
       if (!isInsideTodo) setActiveTodoId(null);
     };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
   }, []);
 
   const getTodayData = () => {
-    return dailyData[selectedDate] || {
-      todos: [],
-      timeplan: {},
-      braindump: '',
-      timecatcher: {}
-    };
+    return (
+      dailyData[selectedDate] || {
+        todos: [],
+        timeplan: {},
+        braindump: "",
+      }
+    );
   };
 
   const updateTodayData = (updates) => {
@@ -98,27 +111,27 @@ export default function TimeBoxPlanner() {
       ...dailyData,
       [selectedDate]: {
         ...getTodayData(),
-        ...updates
-      }
+        ...updates,
+      },
     });
   };
 
   const addTodo = () => {
     const todos = getTodayData().todos;
-    const newTodo = { id: Date.now(), text: '', completed: false };
+    const newTodo = { id: Date.now(), text: "", completed: false };
     updateTodayData({ todos: [...todos, newTodo] });
     setActiveTodoId(newTodo.id);
   };
 
   const updateTodo = (id, updates) => {
-    const todos = getTodayData().todos.map(todo =>
+    const todos = getTodayData().todos.map((todo) =>
       todo.id === id ? { ...todo, ...updates } : todo
     );
     updateTodayData({ todos });
   };
 
   const deleteTodo = (id) => {
-    const todos = getTodayData().todos.filter(todo => todo.id !== id);
+    const todos = getTodayData().todos.filter((todo) => todo.id !== id);
     updateTodayData({ todos });
     setActiveTodoId(null);
   };
@@ -135,13 +148,13 @@ export default function TimeBoxPlanner() {
   const changeDate = (days) => {
     const current = new Date(selectedDate);
     current.setDate(current.getDate() + days);
-    setSelectedDate(current.toISOString().split('T')[0]);
+    setSelectedDate(current.toISOString().split("T")[0]);
     setActiveTodoId(null);
   };
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const days = ["일", "월", "화", "수", "목", "금", "토"];
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const dayOfWeek = days[date.getDay()];
@@ -154,9 +167,12 @@ export default function TimeBoxPlanner() {
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-    return { daysInMonth, startingDayOfWeek, year, month };
+    return {
+      daysInMonth: lastDay.getDate(),
+      startingDayOfWeek: firstDay.getDay(),
+      year,
+      month,
+    };
   };
 
   const changeCalendarMonth = (offset) => {
@@ -169,33 +185,41 @@ export default function TimeBoxPlanner() {
     const year = calendarMonth.getFullYear();
     const month = calendarMonth.getMonth();
     const selected = new Date(year, month, day);
-    setSelectedDate(selected.toISOString().split('T')[0]);
+    setSelectedDate(selected.toISOString().split("T")[0]);
     setShowCalendar(false);
   };
 
   const hasDataOnDate = (dateStr) => {
     const data = dailyData[dateStr];
     if (!data) return false;
-    return data.todos.length > 0 || Object.keys(data.timeplan).length > 0 || data.braindump;
+    return (
+      (data.todos && data.todos.length > 0) ||
+      (data.timeplan && Object.keys(data.timeplan).length > 0) ||
+      data.braindump
+    );
+  };
+
+  const openCalendar = () => {
+    setCalendarMonth(new Date(selectedDate)); // ✅ 선택한 날짜의 월로 이동
+    setShowCalendar(true);
   };
 
   const todayData = getTodayData();
 
-  // ✅ 달력 모달: Claude 느낌으로 버튼/아이콘 간결하게 (닫기 버튼에 X 추가)
   const CalendarModal = () => {
     const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(calendarMonth);
     const days = [];
-    const yearKey = year.toString();
-    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const yearKey = String(year);
+    const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(<div key={`empty-${i}`} className="aspect-square" />);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+      const dateStr = new Date(year, month, day).toISOString().split("T")[0];
       const isSelected = dateStr === selectedDate;
-      const isToday = dateStr === new Date().toISOString().split('T')[0];
+      const isToday = dateStr === new Date().toISOString().split("T")[0];
       const hasData = hasDataOnDate(dateStr);
 
       days.push(
@@ -203,10 +227,13 @@ export default function TimeBoxPlanner() {
           key={day}
           onClick={() => selectDateFromCalendar(day)}
           className={`aspect-square flex flex-col items-center justify-center rounded-lg transition-all relative
-            ${isSelected ? 'bg-indigo-600 text-white font-bold' :
-              isToday ? 'bg-indigo-100 text-indigo-700 font-semibold' :
-              'hover:bg-gray-100'}
-          `}
+            ${
+              isSelected
+                ? "bg-indigo-600 text-white font-bold"
+                : isToday
+                ? "bg-indigo-100 text-indigo-700 font-semibold"
+                : "hover:bg-gray-100"
+            }`}
         >
           <span>{day}</span>
           {hasData && !isSelected && (
@@ -225,7 +252,7 @@ export default function TimeBoxPlanner() {
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="이전 달"
             >
-              <ChevronLeft className={`w-5 h-5 ${ICON.nav.className}`} />
+              <ChevronLeft size={20} className={ICON.nav.className} />
             </button>
 
             <h2 className="text-xl font-bold">
@@ -237,27 +264,27 @@ export default function TimeBoxPlanner() {
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="다음 달"
             >
-              <ChevronRight className={`w-5 h-5 ${ICON.nav.className}`} />
+              <ChevronRight size={20} className={ICON.nav.className} />
             </button>
           </div>
 
           <div className="grid grid-cols-7 gap-2 mb-2">
-            {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+            {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
               <div key={d} className="text-center text-sm font-semibold text-gray-600">
                 {d}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-2 mb-6">
-            {days}
-          </div>
+          <div className="grid grid-cols-7 gap-2 mb-6">{days}</div>
 
           <div className="mb-4">
             <h3 className="text-lg font-bold text-gray-800 mb-2">🎯 {year}년 목표</h3>
             <textarea
-              value={yearlyGoals[yearKey] || ''}
-              onChange={(e) => setYearlyGoals({ ...yearlyGoals, [yearKey]: e.target.value })}
+              value={yearlyGoals[yearKey] || ""}
+              onChange={(e) =>
+                setYearlyGoals({ ...yearlyGoals, [yearKey]: e.target.value })
+              }
               placeholder="올해의 목표를 적어보세요..."
               className="w-full p-3 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400 resize-none"
               rows="3"
@@ -265,10 +292,14 @@ export default function TimeBoxPlanner() {
           </div>
 
           <div className="mb-5">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">📋 {month + 1}월 목표</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              📋 {month + 1}월 목표
+            </h3>
             <textarea
-              value={monthlyGoals[monthKey] || ''}
-              onChange={(e) => setMonthlyGoals({ ...monthlyGoals, [monthKey]: e.target.value })}
+              value={monthlyGoals[monthKey] || ""}
+              onChange={(e) =>
+                setMonthlyGoals({ ...monthlyGoals, [monthKey]: e.target.value })
+              }
               placeholder="이번 달의 목표를 적어보세요..."
               className="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-400 resize-none"
               rows="4"
@@ -279,18 +310,12 @@ export default function TimeBoxPlanner() {
             onClick={() => setShowCalendar(false)}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
           >
-            <X className={`w-5 h-5 text-white`} />
+            <X size={ICON.close.size} className={ICON.close.className} />
             닫기
           </button>
         </div>
       </div>
     );
-  };
-
-  // ✅ 달력 열기: 아이콘 클릭 뿐 아니라 날짜 텍스트 클릭도 열리게(Claude 느낌)
-  const openCalendar = () => {
-    setCalendarMonth(new Date(selectedDate)); // 현재 선택 날짜의 월로 달력 월 이동
-    setShowCalendar(true);
   };
 
   return (
@@ -309,25 +334,20 @@ export default function TimeBoxPlanner() {
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="이전 날짜"
             >
-              <ChevronLeft className={`w-[${ICON.nav.size}px] h-[${ICON.nav.size}px] ${ICON.nav.className}`} />
+              <ChevronLeft size={ICON.nav.size} className={ICON.nav.className} />
             </button>
 
             <div className="flex items-center gap-3">
-              {/* ✅ 달력 클릭 → 월별 캘린더 모달 */}
               <button
                 onClick={openCalendar}
                 className="p-2 hover:bg-indigo-100 rounded-lg transition-colors"
                 aria-label="달력 열기"
               >
-                <Calendar className={`w-[${ICON.calendar.size}px] h-[${ICON.calendar.size}px] ${ICON.calendar.className}`} />
+                <Calendar size={ICON.calendar.size} className={ICON.calendar.className} />
               </button>
 
               {/* 날짜 텍스트도 클릭하면 달력 열리게 */}
-              <button
-                onClick={openCalendar}
-                className="text-center"
-                style={{ background: 'transparent' }}
-              >
+              <button onClick={openCalendar} className="text-center bg-transparent">
                 <h1 className="text-2xl font-bold text-gray-800">
                   {formatDate(selectedDate)}
                 </h1>
@@ -339,7 +359,7 @@ export default function TimeBoxPlanner() {
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="다음 날짜"
             >
-              <ChevronRight className={`w-[${ICON.nav.size}px] h-[${ICON.nav.size}px] ${ICON.nav.className}`} />
+              <ChevronRight size={ICON.nav.size} className={ICON.nav.className} />
             </button>
           </div>
         </div>
@@ -351,17 +371,16 @@ export default function TimeBoxPlanner() {
             <div className="bg-white rounded-lg shadow-md p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <List className={`w-[${ICON.list.size}px] h-[${ICON.list.size}px] ${ICON.list.className}`} />
+                  <List size={ICON.list.size} className={ICON.list.className} />
                   <h2 className="text-lg font-bold text-gray-800">TO DO LIST</h2>
                 </div>
 
-                {/* ✅ + 아이콘: Claude처럼 작고 단순 */}
                 <button
                   onClick={addTodo}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   aria-label="할 일 추가"
                 >
-                  <Plus className={`w-[${ICON.plus.size}px] h-[${ICON.plus.size}px] ${ICON.plus.className}`} />
+                  <Plus size={ICON.plus.size} className={ICON.plus.className} />
                 </button>
               </div>
 
@@ -375,13 +394,15 @@ export default function TimeBoxPlanner() {
                     <div
                       key={todo.id}
                       data-todo-row="true"
-                      onClick={() => setActiveTodoId(todo.id)} // ✅ 클릭 시 휴지통 보이게
+                      onClick={() => setActiveTodoId(todo.id)}
                       className="flex items-center gap-2 rounded-lg px-1 py-1"
                     >
                       <input
                         type="checkbox"
                         checked={todo.completed}
-                        onChange={(e) => updateTodo(todo.id, { completed: e.target.checked })}
+                        onChange={(e) =>
+                          updateTodo(todo.id, { completed: e.target.checked })
+                        }
                         className="w-5 h-5 rounded border-2 border-red-400 text-red-500 focus:ring-red-500"
                       />
 
@@ -391,18 +412,20 @@ export default function TimeBoxPlanner() {
                         onChange={(e) => updateTodo(todo.id, { text: e.target.value })}
                         placeholder="할 일 입력"
                         className={`flex-1 px-2 py-1 border-b border-gray-200 outline-none focus:border-red-400 bg-transparent ${
-                          todo.completed ? 'line-through text-gray-400' : ''
+                          todo.completed ? "line-through text-gray-400" : ""
                         }`}
                       />
 
-                      {/* ✅ 휴지통: hover가 아니라 "해당 줄 클릭 시만" 표시 */}
                       {activeTodoId === todo.id && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); deleteTodo(todo.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteTodo(todo.id);
+                          }}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                           aria-label="삭제"
                         >
-                          <Trash2 className={`w-[${ICON.trash.size}px] h-[${ICON.trash.size}px] ${ICON.trash.className}`} />
+                          <Trash2 size={ICON.trash.size} className={ICON.trash.className} />
                         </button>
                       )}
                     </div>
@@ -414,7 +437,7 @@ export default function TimeBoxPlanner() {
             {/* BRAIN DUMP */}
             <div className="bg-white rounded-lg shadow-md p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Brain className={`w-[${ICON.brain.size}px] h-[${ICON.brain.size}px] ${ICON.brain.className}`} />
+                <Brain size={ICON.brain.size} className={ICON.brain.className} />
                 <h2 className="text-lg font-bold text-gray-800">BRAIN DUMP</h2>
               </div>
               <textarea
@@ -430,35 +453,37 @@ export default function TimeBoxPlanner() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Clock className={`w-[${ICON.clock.size}px] h-[${ICON.clock.size}px] ${ICON.clock.className}`} />
+                <Clock size={ICON.clock.size} className={ICON.clock.className} />
                 <h2 className="text-lg font-bold text-gray-800">TIME PLAN</h2>
               </div>
 
               <div className="grid grid-cols-1 gap-0 border border-gray-300 rounded-lg overflow-hidden">
                 {timeSlots.map((time) => {
-                  const hour = parseInt(time.split(':')[0], 10);
-                  const isHourMark = time.endsWith(':00');
+                  const hour = parseInt(time.split(":")[0], 10);
+                  const isHourMark = time.endsWith(":00");
                   const isWorkHour = hour >= 9 && hour < 18;
 
                   return (
                     <div
                       key={time}
                       className={`grid grid-cols-12 ${
-                        isHourMark ? 'border-t-2 border-gray-300' : 'border-t border-gray-200'
+                        isHourMark ? "border-t-2 border-gray-300" : "border-t border-gray-200"
                       }`}
                     >
-                      <div className={`col-span-2 px-2 py-1 text-sm font-medium text-gray-600 flex items-center ${
-                        isWorkHour ? 'bg-blue-50' : 'bg-gray-50'
-                      }`}>
+                      <div
+                        className={`col-span-2 px-2 py-1 text-sm font-medium text-gray-600 flex items-center ${
+                          isWorkHour ? "bg-blue-50" : "bg-gray-50"
+                        }`}
+                      >
                         {isHourMark ? time : ""}
                       </div>
 
-                      <div className={`col-span-10 ${isWorkHour ? 'bg-blue-50/30' : ''}`}>
+                      <div className={`col-span-10 ${isWorkHour ? "bg-blue-50/30" : ""}`}>
                         <input
                           type="text"
-                          value={todayData.timeplan[time] || ''}
+                          value={todayData.timeplan[time] || ""}
                           onChange={(e) => updateTimeplan(time, e.target.value)}
-                          placeholder={isHourMark ? '일정 입력' : ''}
+                          placeholder={isHourMark ? "일정 입력" : ""}
                           className="w-full h-full px-2 py-1 text-sm outline-none bg-transparent focus:bg-yellow-50 transition-colors"
                         />
                       </div>
@@ -480,20 +505,20 @@ export default function TimeBoxPlanner() {
             <div>
               <p className="text-sm text-gray-600">완료</p>
               <p className="text-2xl font-bold text-green-600">
-                {todayData.todos.filter(t => t.completed).length}
+                {todayData.todos.filter((t) => t.completed).length}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">남은 할 일</p>
               <p className="text-2xl font-bold text-red-600">
-                {todayData.todos.filter(t => !t.completed).length}
+                {todayData.todos.filter((t) => !t.completed).length}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ✅ 달력 모달 (달력 아이콘 누르면 월별 달력으로 넘어감) */}
+      {/* ✅ 달력 모달 */}
       {showCalendar && <CalendarModal />}
     </div>
   );
