@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timebox Planner</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#4f46e5" />
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f9fafb;
+    }
+    h1 {
+      text-align: center;
+      color: #4f46e5;
+    }
+    .date-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      cursor: pointer;
+    }
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      margin-bottom: 12px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+    .slot {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .slot span {
+      width: 60px;
+      font-weight: bold;
+    }
+    .slot input {
+      flex: 1;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🕒 Timebox Planner</h1>
+
+<div class="date-bar">
+  <button onclick="changeDate(-1)">◀</button>
+  <strong id="dateLabel"></strong>
+  <button onclick="changeDate(1)">▶</button>
+</div>
+
+<textarea id="braindump" placeholder="🧠 Brain dump (생각 메모)"></textarea>
+
+<div id="timeSlots"></div>
+
+<script>
+  const timeSlots = [
+    "05:00","06:00","07:00","08:00","09:00","10:00",
+    "11:00","12:00","13:00","14:00","15:00","16:00",
+    "17:00","18:00","19:00","20:00","21:00","22:00"
+  ];
+
+  let currentDate = new Date();
+
+  function formatDate(date) {
+    return date.toISOString().split("T")[0];
+  }
+
+  function updateDateLabel() {
+    document.getElementById("dateLabel").innerText =
+      currentDate.toLocaleDateString("ko-KR", {
+        month: "long",
+        day: "numeric",
+        weekday: "short"
+      });
+  }
+
+  function changeDate(offset) {
+    currentDate.setDate(currentDate.getDate() + offset);
+    loadData();
+  }
+
+  function loadData() {
+    updateDateLabel();
+    const key = formatDate(currentDate);
+    const data = JSON.parse(localStorage.getItem(key) || "{}");
+
+    document.getElementById("braindump").value = data.braindump || "";
+
+    timeSlots.forEach(time => {
+      const input = document.getElementById("slot-" + time);
+      if (input) input.value = data[time] || "";
+    });
+  }
+
+  function saveData() {
+    const key = formatDate(currentDate);
+    const data = {};
+    data.braindump = document.getElementById("braindump").value;
+
+    timeSlots.forEach(time => {
+      data[time] = document.getElementById("slot-" + time).value;
+    });
+
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  const container = document.getElementById("timeSlots");
+
+  timeSlots.forEach(time => {
+    const div = document.createElement("div");
+    div.className = "slot";
+    div.innerHTML = `
+      <span>${time}</span>
+      <input id="slot-${time}" placeholder="할 일" />
+    `;
+    container.appendChild(div);
+  });
+
+  document.addEventListener("input", saveData);
+  loadData();
+
+  // service worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+
+</body>
+</html>
