@@ -2,694 +2,494 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Timebox Planner</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <meta name="theme-color" content="#4f46e5" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#6C5CE7" />
+  <title>Timebox</title>
 
   <style>
     :root{
-      --primary:#4f46e5;
-      --primary-2:#6d28d9;
-      --bg:#f4f6fb;
+      --bg:#f5f6fb;
       --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --border:#e6e8f0;
-      --shadow:0 10px 24px rgba(15,23,42,.08);
-      --shadow-soft:0 6px 18px rgba(15,23,42,.06);
-      --radius:22px;
-      --radius-sm:16px;
-      --danger:#ef4444;
-      --danger-bg:#ffe4e6;
+      --text:#1f2330;
+      --muted:#6b7280;
+      --primary:#6C5CE7;
+      --line:#e7e9f2;
+      --radius:18px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
       background:var(--bg);
       color:var(--text);
     }
     .wrap{
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 14px 14px 64px;
+      max-width:720px;
+      margin:0 auto;
+      padding:16px 14px 28px;
     }
-
-    /* ===== Top quote (스크샷 느낌: 깔끔한 상단 섹션) ===== */
-    .topQuote{
-      background:#fff;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 16px 16px 14px;
-      border:1px solid rgba(0,0,0,.03);
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:14px;
+      margin:12px 0;
     }
-    .brandRow{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom: 10px;
-    }
-    .brandIcon{
-      width:44px;height:44px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(79,70,229,.14), rgba(109,40,217,.14));
-      display:flex;align-items:center;justify-content:center;
-      font-size: 24px;
-    }
-    .brandTitle{
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: -.4px;
-      color: var(--primary);
-      margin:0;
-      line-height:1.05;
-    }
-    .brandSub{
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-weight: 700;
-    }
-    .quoteLine{
-      margin-top: 12px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+    .motivate{
+      background: linear-gradient(90deg, var(--primary), #5b9df6);
       color:#fff;
-      padding: 12px 14px;
-      border-radius: 18px;
+      border:none;
+      padding:16px 14px;
+      font-weight:800;
+      font-size:18px;
       text-align:center;
-      font-weight: 900;
-      box-shadow: var(--shadow-soft);
+      letter-spacing:-0.2px;
     }
 
-    /* ===== Date + nav ===== */
-    .dateBlock{
-      margin-top: 14px;
-      background:#fff;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      border:1px solid rgba(0,0,0,.03);
-    }
+    /* Date row (simple) */
     .dateRow{
       display:flex;
       align-items:center;
       justify-content:center;
       gap:10px;
-    }
-    .dateTitle{
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing:-.2px;
-    }
-    .calBtn{
-      border:none;
-      background: rgba(79,70,229,.10);
-      color: var(--primary);
-      width: 44px;height: 44px;
-      border-radius: 14px;
-      cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      font-size: 20px;
-      font-weight:900;
-    }
-    .navRow{
-      display:flex;
-      justify-content:space-between;
-      margin-top: 12px;
+      padding:14px 10px;
     }
     .navBtn{
       border:none;
-      width: 58px;
-      height: 46px;
-      border-radius: 14px;
-      background: var(--primary);
-      color:#fff;
-      font-size: 18px;
-      font-weight: 900;
+      background:transparent;
+      color:var(--text);
+      font-size:28px;
+      line-height:1;
+      padding:6px 10px;
+      border-radius:12px;
       cursor:pointer;
-      box-shadow: var(--shadow-soft);
     }
+    .navBtn:active{ background:#eef0fb; }
+    .dateText{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-0.3px;
+    }
+    .calBtn{
+      border:none;
+      background:#eef0fb;
+      width:38px;
+      height:38px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+    }
+    .calBtn:active{ filter:brightness(0.97); }
 
-    /* ===== Cards ===== */
-    .card{
-      background:var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      margin-top: 14px;
-      border:1px solid rgba(0,0,0,.03);
-    }
-    .cardHeader{
+    /* Section header */
+    .sectionHead{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      margin-bottom: 12px;
+      margin-bottom:10px;
     }
-    .cardTitle{
-      margin:0;
+    .sectionTitle{
       display:flex;
       align-items:center;
       gap:10px;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing:-.2px;
+      font-weight:900;
+      letter-spacing:-0.2px;
     }
-    .titleIcon{
-      width: 34px;height: 34px;
-      border-radius: 12px;
-      background: rgba(79,70,229,.10);
-      display:flex;align-items:center;justify-content:center;
-      color: var(--primary);
-      font-weight: 900;
+    .iconBox{
+      width:34px;height:34px;
+      border-radius:12px;
+      background:#eef0fb;
+      display:grid;place-items:center;
     }
-
-    /* ===== TO DO ===== */
-    .plusBtn{
+    .addBtn{
       border:none;
-      width: 40px;height: 40px;
-      border-radius: 14px;
-      background:#111827;
+      background:var(--text);
       color:#fff;
-      font-size: 24px;
-      line-height: 40px;
+      width:42px;height:42px;
+      border-radius:14px;
+      display:grid;place-items:center;
       cursor:pointer;
-      box-shadow: var(--shadow-soft);
+      font-size:22px;
+      font-weight:900;
     }
+    .addBtn:active{ filter:brightness(0.92); }
 
-    .todoList{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+    /* TODO list */
+    .todoList{ display:flex; flex-direction:column; gap:8px; }
     .todoItem{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 10px;
       display:flex;
       align-items:center;
       gap:10px;
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
       background:#fff;
+      position:relative;
     }
-    .checkBox{
-      width: 24px;height: 24px;
-      border-radius: 8px;
-      border: 2px solid var(--primary);
-      display:flex;align-items:center;justify-content:center;
-      cursor:pointer;
+    .check{
+      width:22px;height:22px;
+      border:2px solid #c8cbe0;
+      border-radius:6px;
+      display:grid;place-items:center;
       flex:0 0 auto;
-      font-weight: 900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .check.done{
+      border-color:var(--primary);
+      background:var(--primary);
       color:#fff;
-      background:#fff;
     }
-    .checkBox.done{
-      background: var(--primary);
-    }
-    .todoInput{
+    .todoText{
+      flex:1 1 auto;
       border:none;
       outline:none;
-      width:100%;
-      font-size: 16px;
-      font-weight: 800;
+      font-size:16px;
+      padding:6px 4px;
       background:transparent;
-      color: var(--text);
     }
-    .todoInput::placeholder{
-      color:#9aa4b2;
-      font-weight:800;
-    }
-    .todoInput.done{
+    .todoText.done{
       text-decoration: line-through;
-      color:#94a3b8;
-      font-weight: 800;
+      color:#9aa0b4;
     }
     .trashBtn{
       border:none;
-      width: 40px;height: 40px;
-      border-radius: 14px;
-      background: var(--danger-bg);
-      color: var(--danger);
+      background:transparent;
+      width:38px;height:38px;
+      border-radius:12px;
+      display:none;          /* 기본 숨김 */
+      place-items:center;
       cursor:pointer;
-      flex:0 0 auto;
-      display:flex;align-items:center;justify-content:center;
-      font-size: 18px;
-      font-weight: 900;
     }
+    .todoItem.active .trashBtn{ display:grid; } /* 항목 탭하면 보이기 */
+    .trashBtn:active{ background:#f3f4f6; }
 
-    /* ===== Brain Dump ===== */
+    /* Brain dump */
     textarea{
       width:100%;
-      min-height: 190px;
-      border: 2px solid #e9edf6;
-      border-radius: 18px;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 700;
+      min-height:140px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      font-size:15px;
       outline:none;
-      resize: vertical;
+      resize:vertical;
       background:#fff;
     }
-    textarea::placeholder{ color:#9aa4b2; font-weight:800; }
 
-    /* ===== Calendar Modal ===== */
-    .modalBg{
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.45);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 16px;
-      z-index: 999;
-    }
-    .modal{
-      width:min(420px, 100%);
-      background:#fff;
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      padding: 14px;
-    }
-    .modalTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom: 10px;
-    }
-    .modalTop b{font-size:18px; font-weight: 900;}
-    .miniBtn{
-      border:none;
-      background:#f1f5f9;
-      width: 42px;height: 42px;
-      border-radius: 14px;
-      cursor:pointer;
-      font-size: 18px;
-      font-weight:900;
-    }
-    .weekRow, .grid{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap:8px;
-    }
-    .weekRow div{
-      text-align:center;
-      font-size:12px;
-      color: var(--muted);
-      font-weight:900;
-      padding: 6px 0;
-    }
-    .dayBtn{
-      border:none;
-      background:#fff;
-      border-radius: 14px;
-      padding: 10px 0;
-      cursor:pointer;
-      border:1px solid var(--border);
-      font-weight: 900;
-      position:relative;
-    }
-    .dayBtn.today{border-color: var(--primary); color: var(--primary);}
-    .dayBtn.selected{background: var(--primary); color:#fff; border-color: var(--primary);}
-    .dot{
-      position:absolute;
-      bottom:6px;
-      left:50%;
-      transform:translateX(-50%);
-      width:6px;height:6px;border-radius:999px;
-      background: var(--primary);
-      opacity:.85;
-    }
-    .dayBtn.selected .dot{ background:#fff; opacity:1; }
-    .empty{visibility:hidden}
-    .closeWide{
+    /* Time plan (hourly) */
+    .grid{
       width:100%;
-      margin-top: 10px;
-      border:none;
-      background:#f1f5f9;
-      padding: 12px;
-      border-radius: 16px;
-      cursor:pointer;
-      font-weight:900;
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+      background:#fff;
     }
+    .row{
+      display:grid;
+      grid-template-columns: 84px 1fr;
+      border-top:1px solid var(--line);
+    }
+    .row:first-child{ border-top:none; }
+    .timeCell{
+      padding:12px 10px;
+      background:#fafbff;
+      color:#404556;
+      font-weight:800;
+      border-right:1px solid var(--line);
+    }
+    .planInput{
+      padding:10px 10px;
+      border:none;
+      outline:none;
+      font-size:15px;
+      background:#fff;
+    }
+
+    /* Simple SVG icons */
+    svg{ display:block }
   </style>
 </head>
 
 <body>
   <div class="wrap">
+    <!-- 1) Motivation on top -->
+    <div class="card motivate" id="motivation">오늘도 멋진 하루 되세요! 🎯</div>
 
-    <!-- TOP: 타이틀 + 동기부여 문구 -->
-    <div class="topQuote">
-      <div class="brandRow">
-        <div class="brandIcon">🕒</div>
-        <div>
-          <h1 class="brandTitle">Timebox Planner</h1>
-          <p class="brandSub">Timeboxing your day.</p>
-        </div>
-      </div>
-      <div class="quoteLine" id="quoteLine">오늘 하루도 최선을 다해봐요! 💪</div>
-    </div>
-
-    <!-- 날짜 + 이동 + 달력 -->
-    <div class="dateBlock">
-      <div class="dateRow">
-        <button class="calBtn" id="openCalendar" title="달력">📅</button>
-        <div class="dateTitle" id="dateTitle">1월 14일 (수)</div>
-      </div>
-      <div class="navRow">
-        <button class="navBtn" id="prevDay">◀</button>
-        <button class="navBtn" id="nextDay">▶</button>
-      </div>
-    </div>
-
-    <!-- TO DO LIST -->
+    <!-- 2) Date row (simple arrows + calendar) -->
     <div class="card">
-      <div class="cardHeader">
-        <h3 class="cardTitle">
-          <span class="titleIcon">≡</span>
-          TO DO LIST
-        </h3>
-        <button class="plusBtn" id="addTodo" title="추가">+</button>
+      <div class="dateRow">
+        <button class="navBtn" id="prevDay" aria-label="이전 날짜">‹</button>
+
+        <button class="calBtn" id="openCalendar" aria-label="달력 열기">
+          <!-- simple calendar icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M7 3v3M17 3v3M4 8h16M6 6h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <div class="dateText" id="dateLabel">-</div>
+        <button class="navBtn" id="nextDay" aria-label="다음 날짜">›</button>
       </div>
+    </div>
+
+    <!-- 3) TODO -->
+    <div class="card">
+      <div class="sectionHead">
+        <div class="sectionTitle">
+          <div class="iconBox" aria-hidden="true">
+            <!-- simple list icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M8 6h13M8 12h13M8 18h13" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+              <path d="M3 6h.01M3 12h.01M3 18h.01" stroke="#1f2330" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>TO DO LIST</span>
+        </div>
+
+        <button class="addBtn" id="addTodo" aria-label="할 일 추가">+</button>
+      </div>
+
       <div class="todoList" id="todoList"></div>
     </div>
 
-    <!-- BRAIN DUMP -->
+    <!-- Brain dump -->
     <div class="card">
-      <div class="cardHeader" style="margin-bottom:10px;">
-        <h3 class="cardTitle">
-          <span class="titleIcon">🧠</span>
-          BRAIN DUMP
-        </h3>
+      <div class="sectionHead">
+        <div class="sectionTitle">
+          <div class="iconBox" aria-hidden="true">
+            <!-- simple brain-ish icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M9 4c-2 0-4 1.5-4 4v8c0 2.2 1.8 4 4 4" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+              <path d="M15 4c2 0 4 1.5 4 4v8c0 2.2-1.8 4-4 4" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+              <path d="M9 10h6M9 14h6" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>BRAIN DUMP</span>
+        </div>
       </div>
       <textarea id="brainDump" placeholder="생각을 자유롭게 적어보세요."></textarea>
     </div>
 
-  </div>
-
-  <!-- 달력 모달 -->
-  <div class="modalBg" id="modalBg">
-    <div class="modal">
-      <div class="modalTop">
-        <button class="miniBtn" id="calPrev">◀</button>
-        <b id="calTitle">2026년 1월</b>
-        <button class="miniBtn" id="calNext">▶</button>
+    <!-- 4) TIME PLAN (hourly) -->
+    <div class="card">
+      <div class="sectionHead">
+        <div class="sectionTitle">
+          <div class="iconBox" aria-hidden="true">
+            <!-- simple clock icon (section only) -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 7v6l4 2" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="#1f2330" stroke-width="2"/>
+            </svg>
+          </div>
+          <span>TIME PLAN</span>
+        </div>
       </div>
 
-      <div class="weekRow">
-        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-      </div>
-      <div class="grid" id="calGrid"></div>
-
-      <button class="closeWide" id="calClose">닫기</button>
+      <div class="grid" id="timeGrid"></div>
     </div>
   </div>
 
   <script>
-    // ===== Service Worker (이미 sw.js가 있다면 그대로 사용) =====
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    // ====== Utils ======
+    const pad2 = (n) => String(n).padStart(2, "0");
+    const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    const formatKor = (d) => {
+      const week = ["일","월","화","수","목","금","토"][d.getDay()];
+      return `${d.getMonth()+1}월 ${d.getDate()}일 (${week})`;
+    };
+
+    // ====== State ======
+    let current = new Date();
+    current.setHours(0,0,0,0);
+
+    // 시간 범위(원하면 여기만 수정)
+    const START_HOUR = 5;
+    const END_HOUR = 22; // 포함
+
+    // ====== Storage keys ======
+    const keyTodo = (dateStr) => `tb:todo:${dateStr}`;
+    const keyBrain = (dateStr) => `tb:brain:${dateStr}`;
+    const keyPlan = (dateStr) => `tb:plan:${dateStr}`;
+
+    // ====== Date render ======
+    const dateLabel = document.getElementById("dateLabel");
+    function renderDate(){
+      const ds = ymd(current);
+      dateLabel.textContent = formatKor(current);
+      // load per-day
+      loadTodos(ds);
+      loadBrain(ds);
+      loadPlan(ds);
+      renderTimeGrid(ds);
     }
 
-    // ===== 저장 키 =====
-    const STORAGE_KEY = "timeboxPlanner_v2";
+    document.getElementById("prevDay").onclick = () => {
+      current.setDate(current.getDate()-1);
+      renderDate();
+    };
+    document.getElementById("nextDay").onclick = () => {
+      current.setDate(current.getDate()+1);
+      renderDate();
+    };
 
-    // ===== 상태 =====
-    let dailyData = {};
-    let selectedDate = new Date();
-    let calendarMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    // (달력 UI는 이후 단계에서 모달로 붙이면 됨)
+    document.getElementById("openCalendar").onclick = () => {
+      alert("달력 모달은 다음 단계에서 붙일게요. (원하면 바로 추가해드림)");
+    };
 
-    const motivationalQuotes = [
-      "오늘 하루도 최선을 다해봐요! 💪",
-      "작은 진전도 진전입니다! 🌟",
-      "당신은 할 수 있어요! ✨",
-      "오늘도 멋진 하루 되세요! 🎯",
-      "한 걸음 한 걸음, 차근차근! 🚀",
-      "당신의 노력은 빛을 발할 거예요! 💫",
-      "오늘의 당신을 응원합니다! 🌈",
-      "완벽하지 않아도 괜찮아요! 💝",
-      "할 수 있다는 믿음이 반입니다! 🌻",
-      "오늘 하루를 즐겨봐요! 🎨"
-    ];
+    // ====== TODO ======
+    const todoListEl = document.getElementById("todoList");
+    let todos = []; // {id,text,done}
 
-    const $ = (id)=>document.getElementById(id);
-
-    function dateKey(d){
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      return `${yyyy}-${mm}-${dd}`;
+    function saveTodos(ds){
+      localStorage.setItem(keyTodo(ds), JSON.stringify(todos));
+    }
+    function loadTodos(ds){
+      todos = JSON.parse(localStorage.getItem(keyTodo(ds)) || "[]");
+      renderTodos(ds);
     }
 
-    function load(){
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if(saved){
-        try { dailyData = JSON.parse(saved) || {}; }
-        catch { dailyData = {}; }
+    function renderTodos(ds){
+      todoListEl.innerHTML = "";
+      if(todos.length === 0){
+        // 최소 1줄 보이게(원하면 제거 가능)
+        addTodoItem(ds, { id: crypto.randomUUID(), text: "", done:false }, true);
+        return;
       }
-    }
-    function save(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyData));
+      todos.forEach(t => addTodoItem(ds, t, false));
     }
 
-    function getDayData(key){
-      return dailyData[key] || { todos: [], braindump: "" };
+    function addTodoItem(ds, t, autofocus){
+      const item = document.createElement("div");
+      item.className = "todoItem";
+      item.dataset.id = t.id;
+
+      const check = document.createElement("div");
+      check.className = "check" + (t.done ? " done" : "");
+      check.innerHTML = t.done ? "✓" : "";
+      check.onclick = (e) => {
+        e.stopPropagation();
+        t.done = !t.done;
+        saveTodos(ds);
+        renderTodos(ds);
+      };
+
+      const input = document.createElement("input");
+      input.className = "todoText" + (t.done ? " done" : "");
+      input.placeholder = "할 일";
+      input.value = t.text || "";
+      input.oninput = () => {
+        t.text = input.value;
+        saveTodos(ds);
+      };
+
+      const trash = document.createElement("button");
+      trash.className = "trashBtn";
+      trash.title = "삭제";
+      trash.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M4 7h16" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10 11v7M14 11v7" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+          <path d="M9 7l1-2h4l1 2" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 7l1 14h8l1-14" stroke="#1f2330" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+      trash.onclick = (e) => {
+        e.stopPropagation();
+        todos = todos.filter(x => x.id !== t.id);
+        saveTodos(ds);
+        renderTodos(ds);
+      };
+
+      // "칸을 클릭하면 휴지통 나타나도록"
+      item.onclick = () => {
+        document.querySelectorAll(".todoItem.active").forEach(el=>el.classList.remove("active"));
+        item.classList.add("active");
+      };
+
+      item.appendChild(check);
+      item.appendChild(input);
+      item.appendChild(trash);
+      todoListEl.appendChild(item);
+
+      if(autofocus) setTimeout(()=>input.focus(), 0);
     }
 
-    function getTodayData(){
-      const key = dateKey(selectedDate);
-      return getDayData(key);
-    }
-
-    function setTodayData(next){
-      const key = dateKey(selectedDate);
-      dailyData[key] = next;
-      save();
-    }
-
-    // ===== 1) 동기부여 문구 =====
-    function setQuote(){
-      const q = motivationalQuotes[Math.floor(Math.random()*motivationalQuotes.length)];
-      $("quoteLine").textContent = q;
-    }
-
-    // ===== 2) 날짜 표시/이동 =====
-    function formatKoreanDate(d){
-      const days = ["일","월","화","수","목","금","토"];
-      return `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
-    }
-    function renderHeader(){
-      $("dateTitle").textContent = formatKoreanDate(selectedDate);
-    }
-
-    $("prevDay").addEventListener("click", ()=>{
-      selectedDate.setDate(selectedDate.getDate()-1);
-      renderAll();
+    // 바깥 클릭하면 active 해제
+    document.addEventListener("click", (e) => {
+      const inside = e.target.closest(".todoItem");
+      if(!inside){
+        document.querySelectorAll(".todoItem.active").forEach(el=>el.classList.remove("active"));
+      }
     });
-    $("nextDay").addEventListener("click", ()=>{
-      selectedDate.setDate(selectedDate.getDate()+1);
-      renderAll();
+
+    document.getElementById("addTodo").onclick = () => {
+      const ds = ymd(current);
+      const newItem = { id: crypto.randomUUID(), text:"", done:false };
+      todos.push(newItem);
+      saveTodos(ds);
+      renderTodos(ds);
+      // 마지막 항목 포커스
+      setTimeout(()=>{
+        const last = todoListEl.lastElementChild;
+        last?.querySelector("input")?.focus();
+        last?.classList.add("active");
+      },0);
+    };
+
+    // ====== Brain dump ======
+    const brainEl = document.getElementById("brainDump");
+    function loadBrain(ds){
+      brainEl.value = localStorage.getItem(keyBrain(ds)) || "";
+    }
+    brainEl.addEventListener("input", () => {
+      const ds = ymd(current);
+      localStorage.setItem(keyBrain(ds), brainEl.value);
     });
 
-    // ===== 3) TO DO LIST =====
-    function addTodo(){
-      const data = getTodayData();
-      data.todos.push({ id: Date.now(), text: "", done: false });
-      setTodayData(data);
-      renderTodos(true); // true => 새로 추가 후 포커스
+    // ====== TIME PLAN (hourly) ======
+    const gridEl = document.getElementById("timeGrid");
+    let plan = {}; // { "05:00": "..." }
+
+    function loadPlan(ds){
+      plan = JSON.parse(localStorage.getItem(keyPlan(ds)) || "{}");
+    }
+    function savePlan(ds){
+      localStorage.setItem(keyPlan(ds), JSON.stringify(plan));
     }
 
-    function toggleTodo(id){
-      const data = getTodayData();
-      data.todos = data.todos.map(t => t.id===id ? ({...t, done: !t.done}) : t);
-      // 완료 항목 아래로 정렬
-      data.todos = sortTodos(data.todos);
-      setTodayData(data);
-      renderTodos();
-    }
+    function renderTimeGrid(ds){
+      gridEl.innerHTML = "";
+      for(let h=START_HOUR; h<=END_HOUR; h++){
+        const hh = pad2(h);
+        const label = `${hh}:00`;
 
-    function updateTodoText(id, text){
-      const data = getTodayData();
-      data.todos = data.todos.map(t => t.id===id ? ({...t, text}) : t);
-      setTodayData(data);
-      // 입력 중엔 전체 re-render를 최소화 (사용감 개선)
-    }
-
-    function deleteTodo(id){
-      const data = getTodayData();
-      data.todos = data.todos.filter(t => t.id!==id);
-      setTodayData(data);
-      renderTodos();
-    }
-
-    function sortTodos(todos){
-      // done=false 먼저, done=true 나중. 같은 그룹 내에서는 생성순 유지
-      return [...todos].sort((a,b)=>{
-        if(a.done === b.done) return a.id - b.id;
-        return a.done ? 1 : -1;
-      });
-    }
-
-    function renderTodos(focusNew=false){
-      const list = $("todoList");
-      list.innerHTML = "";
-
-      const data = getTodayData();
-      // 항상 정렬 상태 유지
-      data.todos = sortTodos(data.todos);
-      setTodayData(data);
-
-      let lastInput = null;
-
-      data.todos.forEach(todo=>{
         const row = document.createElement("div");
-        row.className = "todoItem";
+        row.className = "row";
 
-        const check = document.createElement("div");
-        check.className = "checkBox" + (todo.done ? " done" : "");
-        check.textContent = todo.done ? "✓" : "";
-        check.addEventListener("click", ()=>toggleTodo(todo.id));
+        const timeCell = document.createElement("div");
+        timeCell.className = "timeCell";
+        timeCell.textContent = label;
 
         const input = document.createElement("input");
-        input.className = "todoInput" + (todo.done ? " done" : "");
-        input.placeholder = "할 일";
-        input.value = todo.text || "";
-        input.addEventListener("input", (e)=>updateTodoText(todo.id, e.target.value));
-        input.addEventListener("blur", ()=>renderCalendar()); // 데이터 점 표시 업데이트
+        input.className = "planInput";
+        input.placeholder = "일정 입력";
+        input.value = plan[label] || "";
+        input.oninput = () => {
+          plan[label] = input.value;
+          savePlan(ds);
+        };
 
-        const trash = document.createElement("button");
-        trash.className = "trashBtn";
-        trash.textContent = "🗑";
-        trash.title = "삭제";
-        trash.addEventListener("click", ()=>deleteTodo(todo.id));
-
-        row.appendChild(check);
+        row.appendChild(timeCell);
         row.appendChild(input);
-        row.appendChild(trash);
-        list.appendChild(row);
-
-        lastInput = input;
-      });
-
-      if(focusNew && lastInput){
-        lastInput.focus();
+        gridEl.appendChild(row);
       }
     }
 
-    $("addTodo").addEventListener("click", addTodo);
-
-    // ===== Brain Dump =====
-    $("brainDump").addEventListener("input", (e)=>{
-      const data = getTodayData();
-      data.braindump = e.target.value;
-      setTodayData(data);
-      // 달력 점 표시를 즉시 반영하려면 아래 주석 해제
-      // renderCalendar();
-    });
-
-    function renderBrainDump(){
-      $("brainDump").value = getTodayData().braindump || "";
-    }
-
-    // ===== 달력: 데이터 있는 날짜 점(•) 표시 =====
-    function hasDataOnDate(key){
-      const d = dailyData[key];
-      if(!d) return false;
-      const hasTodo = Array.isArray(d.todos) && d.todos.some(t => (t.text && t.text.trim()) || t.done);
-      const hasBrain = !!(d.braindump && d.braindump.trim());
-      return hasTodo || hasBrain;
-    }
-
-    // ===== Calendar Modal =====
-    function openCalendar(){
-      calendarMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-      renderCalendar();
-      $("modalBg").style.display = "flex";
-    }
-    function closeCalendar(){
-      $("modalBg").style.display = "none";
-    }
-
-    $("openCalendar").addEventListener("click", openCalendar);
-    $("calClose").addEventListener("click", closeCalendar);
-    $("modalBg").addEventListener("click", (e)=>{
-      if(e.target.id === "modalBg") closeCalendar();
-    });
-
-    $("calPrev").addEventListener("click", ()=>{
-      calendarMonth.setMonth(calendarMonth.getMonth()-1);
-      renderCalendar();
-    });
-    $("calNext").addEventListener("click", ()=>{
-      calendarMonth.setMonth(calendarMonth.getMonth()+1);
-      renderCalendar();
-    });
-
-    function renderCalendar(){
-      const y = calendarMonth.getFullYear();
-      const m = calendarMonth.getMonth();
-      $("calTitle").textContent = `${y}년 ${m+1}월`;
-
-      const first = new Date(y, m, 1);
-      const last = new Date(y, m+1, 0);
-      const daysInMonth = last.getDate();
-      const startDow = first.getDay();
-
-      const grid = $("calGrid");
-      grid.innerHTML = "";
-
-      for(let i=0; i<startDow; i++){
-        const d = document.createElement("div");
-        d.className = "dayBtn empty";
-        d.textContent = "0";
-        grid.appendChild(d);
-      }
-
-      const todayKey = dateKey(new Date());
-      const selectedKey = dateKey(selectedDate);
-
-      for(let day=1; day<=daysInMonth; day++){
-        const d = new Date(y, m, day);
-        const key = dateKey(d);
-
-        const btn = document.createElement("button");
-        btn.className = "dayBtn";
-        btn.textContent = String(day);
-
-        if(key===todayKey) btn.classList.add("today");
-        if(key===selectedKey) btn.classList.add("selected");
-
-        // 데이터 점 표시
-        if(hasDataOnDate(key)){
-          const dot = document.createElement("div");
-          dot.className = "dot";
-          btn.appendChild(dot);
-        }
-
-        btn.addEventListener("click", ()=>{
-          selectedDate = d;
-          closeCalendar();
-          renderAll();
-        });
-
-        grid.appendChild(btn);
-      }
-    }
-
-    // ===== 전체 렌더 =====
-    function renderAll(){
-      renderHeader();
-      renderTodos();
-      renderBrainDump();
-      // 달력 모달이 열려있을 수 있으니 월 표시/점 업데이트도 가능
-      // renderCalendar();
-    }
-
-    // 초기화
-    load();
-    setQuote();
-    renderAll();
+    // ====== Init ======
+    renderDate();
   </script>
 </body>
 </html>
