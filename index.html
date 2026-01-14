@@ -608,6 +608,7 @@ function addTodo(){
   activeTodoId = t.id;
   renderTodos();
   renderStats();
+  focusTodoInput(t.id); // ✅ 추가: 새로 만든 입력칸에 커서/물방울 표시
 }
 
 function toggleTodo(id, checked){
@@ -616,7 +617,7 @@ function toggleTodo(id, checked){
   setToday({ todos });
   renderTodos();
   renderStats();
-  focusTodoInput(t.id);   // ✅ 추가: 새 항목 입력칸에 커서 + 파란 물방울 뜸
+  // focusTodoInput(t.id);   // ✅ 추가: 새 항목 입력칸에 커서 + 파란 물방울 뜸
 }
 
 function updateTodoText(id, text){
