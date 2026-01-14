@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Timebox Planner</title>
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest" />
+  <!-- PWA 핵심 -->
+  <link rel="manifest" href="/timebox-planner/manifest.webmanifest" />
   <meta name="theme-color" content="#4f46e5" />
-
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -63,6 +62,15 @@
 
 <h1>🕒 Timebox Planner</h1>
 
+<p>Timeboxing your day.</p>
+
+  <!-- Service Worker 등록 -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/timebox-planner/sw.js");
+    }
+  </script>
+  
 <div class="date-bar">
   <button onclick="changeDate(-1)">◀</button>
   <strong id="dateLabel"></strong>
