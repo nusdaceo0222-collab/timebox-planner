@@ -77,6 +77,18 @@
     .chk{width:20px;height:20px}
     .trash-btn{padding:10px;border-radius:12px}
     .trash-btn:hover{background:#fff1f2}
+/* ✅ 삭제버튼은 항상 존재시키고, 보이기만 제어 */
+.todo-row .trash-btn{
+  opacity:0;
+  pointer-events:none;
+}
+.todo-row.active .trash-btn,
+.todo-row:focus-within .trash-btn{
+  opacity:1;
+  pointer-events:auto;
+}
+
+    
     textarea{
       width:100%; border:1px solid var(--border);
       border-radius:14px; padding:12px; outline:none; resize:none;
@@ -416,15 +428,16 @@ function renderTodos(){
       <div class="todo-row ${active}" data-todo-row="1" data-id="${t.id}">
         <input class="chk" type="checkbox" ${checked} data-act="toggle" />
         <input class="todo-text" type="text" value="${escapeHTML(t.text||"")}" placeholder="할 일 입력" data-act="text" ${line}/>
-        ${
-          activeTodoId === t.id
-          ? `<button class="btn trash-btn" data-act="del" aria-label="삭제">
-               <svg class="ico c-red" viewBox="0 0 24 24">
-                 <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-               </svg>
-             </button>`
-          : `<div style="width:44px"></div>`
-        }
+
+<button class="btn trash-btn" data-act="del" aria-label="삭제">
+  <svg class="ico c-red" viewBox="0 0 24 24">
+    <path d="M3 6h18"/><path d="M8 6V4h8v2"/>
+    <path d="M19 6l-1 14H6L5 6"/>
+    <path d="M10 11v6"/><path d="M14 11v6"/>
+  </svg>
+</button>
+
+        
       </div>
     `;
   }).join("");
@@ -499,15 +512,13 @@ $("todoList").addEventListener("focusin", (e) => {
   if (!row) return;
 
   const id = Number(row.dataset.id);
+  activeTodoId = id;
 
-  // ✅ 입력칸을 터치하면 active로 만들고(휴지통 보이게),
-  // ✅ 재렌더 후 다시 포커스를 복구해서 파란 물방울(커서핸들)이 입력칸에 뜨게 함
-  if (activeTodoId !== id) {
-    activeTodoId = id;
-    renderTodos();
-    focusTodoInput(id);
-  }
+  // ✅ DOM 전체 재렌더 금지! (모바일에서 키보드 안뜨는 원인)
+  document.querySelectorAll("[data-todo-row='1']").forEach(r => r.classList.remove("active"));
+  row.classList.add("active");
 });
+
 
 $("todoList").addEventListener("change", (e) => {
   const row = e.target.closest?.("[data-todo-row='1']");
