@@ -1,525 +1,677 @@
-import React, { useState, useEffect } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Clock,
-  List,
-  Brain,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Timebox Planner</title>
 
-export default function TimeBoxPlanner() {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [dailyData, setDailyData] = useState({});
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [yearlyGoals, setYearlyGoals] = useState({});
-  const [monthlyGoals, setMonthlyGoals] = useState({});
-  const [activeTodoId, setActiveTodoId] = useState(null);
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#4f46e5" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
 
-  // ===== Claude 스타일 아이콘 설정(크기/색상) =====
-  // ✅ Tailwind w-[${...}] 쓰지 말고, Lucide size prop 사용!
-  const ICON = {
-    nav: { size: 26, className: "text-gray-700" },
-    calendar: { size: 24, className: "text-indigo-600" },
-    list: { size: 20, className: "text-red-500" },
-    brain: { size: 20, className: "text-purple-500" },
-    clock: { size: 20, className: "text-blue-500" },
-    plus: { size: 20, className: "text-gray-600" },
-    trash: { size: 18, className: "text-red-500" },
-    close: { size: 20, className: "text-white" },
-  };
-
-  const motivationalQuotes = [
-    "오늘 하루도 최선을 다해봐요! 💪",
-    "작은 진전도 진전입니다! 🌟",
-    "당신은 할 수 있어요! ✨",
-    "오늘도 멋진 하루 되세요! 🎯",
-    "한 걸음 한 걸음, 차근차근! 🚀",
-    "당신의 노력은 빛을 발할 거예요! 💫",
-    "오늘의 당신을 응원합니다! 🌈",
-    "완벽하지 않아도 괜찮아요! 💝",
-    "할 수 있다는 믿음이 반입니다! 🌻",
-    "오늘 하루를 즐겨봐요! 🎨",
-  ];
-
-  const [dailyQuote] = useState(() => {
-    return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-  });
-
-  // ✅ (원하면 1시간 단위로 바꿀 수 있음)
-  // 1시간 단위로 하려면 아래를 사용:
-  // const timeSlots = Array.from({ length: 24 }, (_, i) => String(i).padStart(2,'0') + ':00');
-  const timeSlots = [
-    "05:00","05:30","06:00","06:30","07:00","07:30","08:00","08:30",
-    "09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30",
-    "13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30",
-    "17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30",
-    "21:00","21:30","22:00","22:30","23:00","23:30","00:00","00:30",
-    "01:00","01:30","02:00","02:30","03:00","03:30","04:00","04:30"
-  ];
-
-  useEffect(() => {
-    const saved = localStorage.getItem("timeboxPlanner");
-    const savedYearly = localStorage.getItem("yearlyGoals");
-    const savedMonthly = localStorage.getItem("monthlyGoals");
-
-    if (saved) setDailyData(JSON.parse(saved));
-    if (savedYearly) setYearlyGoals(JSON.parse(savedYearly));
-    if (savedMonthly) setMonthlyGoals(JSON.parse(savedMonthly));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("timeboxPlanner", JSON.stringify(dailyData));
-  }, [dailyData]);
-
-  useEffect(() => {
-    localStorage.setItem("yearlyGoals", JSON.stringify(yearlyGoals));
-  }, [yearlyGoals]);
-
-  useEffect(() => {
-    localStorage.setItem("monthlyGoals", JSON.stringify(monthlyGoals));
-  }, [monthlyGoals]);
-
-  // ✅ 바깥 클릭 시 activeTodoId 해제(휴지통 숨김)
-  useEffect(() => {
-    const onDocClick = (e) => {
-      const isInsideTodo = e.target.closest?.('[data-todo-row="true"]');
-      if (!isInsideTodo) setActiveTodoId(null);
-    };
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, []);
-
-  const getTodayData = () => {
-    return (
-      dailyData[selectedDate] || {
-        todos: [],
-        timeplan: {},
-        braindump: "",
-      }
-    );
-  };
-
-  const updateTodayData = (updates) => {
-    setDailyData({
-      ...dailyData,
-      [selectedDate]: {
-        ...getTodayData(),
-        ...updates,
-      },
-    });
-  };
-
-  const addTodo = () => {
-    const todos = getTodayData().todos;
-    const newTodo = { id: Date.now(), text: "", completed: false };
-    updateTodayData({ todos: [...todos, newTodo] });
-    setActiveTodoId(newTodo.id);
-  };
-
-  const updateTodo = (id, updates) => {
-    const todos = getTodayData().todos.map((todo) =>
-      todo.id === id ? { ...todo, ...updates } : todo
-    );
-    updateTodayData({ todos });
-  };
-
-  const deleteTodo = (id) => {
-    const todos = getTodayData().todos.filter((todo) => todo.id !== id);
-    updateTodayData({ todos });
-    setActiveTodoId(null);
-  };
-
-  const updateTimeplan = (time, value) => {
-    const timeplan = { ...getTodayData().timeplan, [time]: value };
-    updateTodayData({ timeplan });
-  };
-
-  const updateBraindump = (value) => {
-    updateTodayData({ braindump: value });
-  };
-
-  const changeDate = (days) => {
-    const current = new Date(selectedDate);
-    current.setDate(current.getDate() + days);
-    setSelectedDate(current.toISOString().split("T")[0]);
-    setActiveTodoId(null);
-  };
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const days = ["일", "월", "화", "수", "목", "금", "토"];
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const dayOfWeek = days[date.getDay()];
-    return `${month}월 ${day}일 (${dayOfWeek})`;
-  };
-
-  // ===== 달력 함수 =====
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    return {
-      daysInMonth: lastDay.getDate(),
-      startingDayOfWeek: firstDay.getDay(),
-      year,
-      month,
-    };
-  };
-
-  const changeCalendarMonth = (offset) => {
-    const newDate = new Date(calendarMonth);
-    newDate.setMonth(newDate.getMonth() + offset);
-    setCalendarMonth(newDate);
-  };
-
-  const selectDateFromCalendar = (day) => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const selected = new Date(year, month, day);
-    setSelectedDate(selected.toISOString().split("T")[0]);
-    setShowCalendar(false);
-  };
-
-  const hasDataOnDate = (dateStr) => {
-    const data = dailyData[dateStr];
-    if (!data) return false;
-    return (
-      (data.todos && data.todos.length > 0) ||
-      (data.timeplan && Object.keys(data.timeplan).length > 0) ||
-      data.braindump
-    );
-  };
-
-  const openCalendar = () => {
-    setCalendarMonth(new Date(selectedDate)); // ✅ 선택한 날짜의 월로 이동
-    setShowCalendar(true);
-  };
-
-  const todayData = getTodayData();
-
-  const CalendarModal = () => {
-    const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(calendarMonth);
-    const days = [];
-    const yearKey = String(year);
-    const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
-
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="aspect-square" />);
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --indigo:#4f46e5;
+      --purple:#7c3aed;
+      --blue:#2563eb;
+      --red:#ef4444;
+      --radius:16px;
     }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .quote{
+      background: linear-gradient(90deg, var(--indigo), var(--purple));
+      color:#fff;border-radius:14px;padding:14px 16px;
+      box-shadow:var(--shadow); text-align:center; font-weight:700;
+      margin-bottom:12px;
+    }
+    .card{
+      background:var(--card);border-radius:var(--radius);
+      box-shadow:var(--shadow); padding:14px; margin-bottom:12px;
+    }
+    .row{display:flex;align-items:center;gap:10px}
+    .row-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .btn{
+      border:0;background:transparent; padding:10px; border-radius:12px;
+      display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+    .btn:hover{background:#f3f4f6}
+    .btn-indigo:hover{background:#eef2ff}
+    .h1{font-size:22px;margin:0;font-weight:800}
+    .section-title{
+      display:flex;align-items:center;gap:8px;
+      font-weight:800; letter-spacing:.3px;
+    }
+    .grid{
+      display:grid;grid-template-columns: 1fr; gap:12px;
+    }
+    @media (min-width: 1024px){
+      .grid{grid-template-columns: 1fr 2fr;}
+    }
+    .subgrid{display:grid;grid-template-columns:1fr; gap:12px;}
+    .todo-empty{color:#9ca3af;font-size:13px;text-align:center;padding:14px 0}
+    .todo-row{
+      display:flex;align-items:center;gap:10px;
+      padding:6px 6px;border-radius:12px;
+    }
+    .todo-row.active{background:#f9fafb}
+    .todo-text{
+      flex:1; border:0; border-bottom:1px solid var(--border);
+      padding:6px 6px; outline:none; background:transparent;
+      font-size:14px;
+    }
+    .todo-text:focus{border-bottom-color:#fca5a5}
+    .chk{width:20px;height:20px}
+    .trash-btn{padding:10px;border-radius:12px}
+    .trash-btn:hover{background:#fff1f2}
+    textarea{
+      width:100%; border:1px solid var(--border);
+      border-radius:14px; padding:12px; outline:none; resize:none;
+      font-size:14px; min-height:220px;
+    }
+    textarea:focus{border-color:#c4b5fd}
+    /* TIME PLAN */
+    .timeplan{
+      border:1px solid #d1d5db; border-radius:14px; overflow:hidden;
+    }
+    .tp-row{
+      display:grid; grid-template-columns: 88px 1fr;
+      border-top:1px solid var(--border);
+    }
+    .tp-row.hour{border-top:2px solid #d1d5db}
+    .tp-time{
+      padding:8px 10px; font-size:13px; color:var(--muted);
+      display:flex; align-items:center; background:#f9fafb;
+      font-weight:700;
+    }
+    .tp-time.work{background:#eff6ff}
+    .tp-input{
+      border:0; outline:none; padding:8px 10px; font-size:13px;
+      background:transparent;
+    }
+    .tp-input:focus{background:#fffbeb}
+    .tp-cell.work{background:rgba(239,246,255,.45)}
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+    .stat-label{font-size:12px;color:var(--muted)}
+    .stat-val{font-size:24px;font-weight:900;margin-top:4px}
+    .green{color:#16a34a}
+    .red{color:#dc2626}
 
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = new Date(year, month, day).toISOString().split("T")[0];
-      const isSelected = dateStr === selectedDate;
-      const isToday = dateStr === new Date().toISOString().split("T")[0];
-      const hasData = hasDataOnDate(dateStr);
+    /* Modal */
+    .modal-back{
+      position:fixed; inset:0; background:rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center;
+      padding:16px; z-index:9999;
+    }
+    .modal{
+      width:min(720px, 100%); background:#fff; border-radius:22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      padding:18px;
+      max-height: 86vh; overflow:auto;
+    }
+    .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .cal-title{font-size:18px;font-weight:900}
+    .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:8px 0}
+    .dow div{font-size:12px;color:var(--muted);text-align:center;font-weight:800}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+    .day{
+      aspect-ratio:1/1;border:0;border-radius:12px;background:transparent;
+      cursor:pointer; position:relative;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;
+    }
+    .day:hover{background:#f3f4f6}
+    .day.today{background:#eef2ff;color:#3730a3}
+    .day.sel{background:var(--indigo);color:#fff}
+    .dot{position:absolute;bottom:6px;width:6px;height:6px;border-radius:999px;background:var(--indigo)}
+    .goal-title{font-weight:900;margin:12px 0 8px}
+    .goal-area{
+      border:2px solid #c7d2fe; border-radius:14px; padding:10px;
+      outline:none; width:100%; min-height:86px; resize:none;
+    }
+    .goal-area.purple{border-color:#ddd6fe}
+    .close-btn{
+      width:100%; margin-top:12px;
+      border:0; background:var(--indigo); color:#fff;
+      padding:12px; border-radius:14px; font-weight:900; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .close-btn:hover{filter:brightness(.95)}
+    /* Icons */
+    .ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .c-gray{color:#374151}
+    .c-indigo{color:#4f46e5}
+    .c-red{color:#ef4444}
+    .c-blue{color:#2563eb}
+    .c-purple{color:#7c3aed}
+  </style>
+</head>
 
-      days.push(
-        <button
-          key={day}
-          onClick={() => selectDateFromCalendar(day)}
-          className={`aspect-square flex flex-col items-center justify-center rounded-lg transition-all relative
-            ${
-              isSelected
-                ? "bg-indigo-600 text-white font-bold"
-                : isToday
-                ? "bg-indigo-100 text-indigo-700 font-semibold"
-                : "hover:bg-gray-100"
-            }`}
-        >
-          <span>{day}</span>
-          {hasData && !isSelected && (
-            <div className="absolute bottom-1 w-1 h-1 bg-indigo-500 rounded-full" />
-          )}
+<body>
+  <div class="wrap">
+    <div id="quote" class="quote">오늘도 멋진 하루 되세요! 🎯</div>
+
+    <!-- Header -->
+    <div class="card">
+      <div class="row-between">
+        <button id="prevDay" class="btn" aria-label="이전 날짜">
+          <svg class="ico c-gray" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-      );
-    }
 
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full my-8">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => changeCalendarMonth(-1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="이전 달"
-            >
-              <ChevronLeft size={20} className={ICON.nav.className} />
-            </button>
+        <div class="row">
+          <button id="openCal1" class="btn btn-indigo" aria-label="달력 열기">
+            <svg class="ico c-indigo" viewBox="0 0 24 24">
+              <path d="M8 2v4M16 2v4"/><path d="M3 10h18"/><path d="M5 6h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+            </svg>
+          </button>
 
-            <h2 className="text-xl font-bold">
-              {year}년 {month + 1}월
-            </h2>
-
-            <button
-              onClick={() => changeCalendarMonth(1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="다음 달"
-            >
-              <ChevronRight size={20} className={ICON.nav.className} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-              <div key={d} className="text-center text-sm font-semibold text-gray-600">
-                {d}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-2 mb-6">{days}</div>
-
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">🎯 {year}년 목표</h3>
-            <textarea
-              value={yearlyGoals[yearKey] || ""}
-              onChange={(e) =>
-                setYearlyGoals({ ...yearlyGoals, [yearKey]: e.target.value })
-              }
-              placeholder="올해의 목표를 적어보세요..."
-              className="w-full p-3 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400 resize-none"
-              rows="3"
-            />
-          </div>
-
-          <div className="mb-5">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              📋 {month + 1}월 목표
-            </h3>
-            <textarea
-              value={monthlyGoals[monthKey] || ""}
-              onChange={(e) =>
-                setMonthlyGoals({ ...monthlyGoals, [monthKey]: e.target.value })
-              }
-              placeholder="이번 달의 목표를 적어보세요..."
-              className="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-400 resize-none"
-              rows="4"
-            />
-          </div>
-
-          <button
-            onClick={() => setShowCalendar(false)}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-          >
-            <X size={ICON.close.size} className={ICON.close.className} />
-            닫기
+          <button id="openCal2" class="btn" style="padding:6px 10px" aria-label="달력 열기">
+            <h1 id="dateTitle" class="h1">1월 14일 (수)</h1>
           </button>
         </div>
+
+        <button id="nextDay" class="btn" aria-label="다음 날짜">
+          <svg class="ico c-gray" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
-    );
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* 동기부여 문구 */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-md p-4 mb-4 text-white text-center">
-          <p className="text-lg font-semibold">{dailyQuote}</p>
-        </div>
-
-        {/* 헤더 - 날짜 선택 */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => changeDate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="이전 날짜"
-            >
-              <ChevronLeft size={ICON.nav.size} className={ICON.nav.className} />
-            </button>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={openCalendar}
-                className="p-2 hover:bg-indigo-100 rounded-lg transition-colors"
-                aria-label="달력 열기"
-              >
-                <Calendar size={ICON.calendar.size} className={ICON.calendar.className} />
-              </button>
-
-              {/* 날짜 텍스트도 클릭하면 달력 열리게 */}
-              <button onClick={openCalendar} className="text-center bg-transparent">
-                <h1 className="text-2xl font-bold text-gray-800">
-                  {formatDate(selectedDate)}
-                </h1>
-              </button>
-            </div>
-
-            <button
-              onClick={() => changeDate(1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="다음 날짜"
-            >
-              <ChevronRight size={ICON.nav.size} className={ICON.nav.className} />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* 왼쪽 컬럼 */}
-          <div className="space-y-4">
-            {/* TO DO LIST */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <List size={ICON.list.size} className={ICON.list.className} />
-                  <h2 className="text-lg font-bold text-gray-800">TO DO LIST</h2>
-                </div>
-
-                <button
-                  onClick={addTodo}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  aria-label="할 일 추가"
-                >
-                  <Plus size={ICON.plus.size} className={ICON.plus.className} />
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {todayData.todos.length === 0 ? (
-                  <p className="text-gray-400 text-sm text-center py-4">
-                    할 일을 추가해보세요
-                  </p>
-                ) : (
-                  todayData.todos.map((todo) => (
-                    <div
-                      key={todo.id}
-                      data-todo-row="true"
-                      onClick={() => setActiveTodoId(todo.id)}
-                      className="flex items-center gap-2 rounded-lg px-1 py-1"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={todo.completed}
-                        onChange={(e) =>
-                          updateTodo(todo.id, { completed: e.target.checked })
-                        }
-                        className="w-5 h-5 rounded border-2 border-red-400 text-red-500 focus:ring-red-500"
-                      />
-
-                      <input
-                        type="text"
-                        value={todo.text}
-                        onChange={(e) => updateTodo(todo.id, { text: e.target.value })}
-                        placeholder="할 일 입력"
-                        className={`flex-1 px-2 py-1 border-b border-gray-200 outline-none focus:border-red-400 bg-transparent ${
-                          todo.completed ? "line-through text-gray-400" : ""
-                        }`}
-                      />
-
-                      {activeTodoId === todo.id && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteTodo(todo.id);
-                          }}
-                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          aria-label="삭제"
-                        >
-                          <Trash2 size={ICON.trash.size} className={ICON.trash.className} />
-                        </button>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* BRAIN DUMP */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Brain size={ICON.brain.size} className={ICON.brain.className} />
-                <h2 className="text-lg font-bold text-gray-800">BRAIN DUMP</h2>
-              </div>
-              <textarea
-                value={todayData.braindump}
-                onChange={(e) => updateBraindump(e.target.value)}
-                placeholder="떠오르는 생각, 아이디어를 자유롭게 적어보세요..."
-                className="w-full h-64 p-3 border border-gray-200 rounded-lg outline-none focus:border-purple-400 resize-none"
-              />
-            </div>
-          </div>
-
-          {/* 오른쪽 컬럼 - TIME PLAN */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Clock size={ICON.clock.size} className={ICON.clock.className} />
-                <h2 className="text-lg font-bold text-gray-800">TIME PLAN</h2>
-              </div>
-
-              <div className="grid grid-cols-1 gap-0 border border-gray-300 rounded-lg overflow-hidden">
-                {timeSlots.map((time) => {
-                  const hour = parseInt(time.split(":")[0], 10);
-                  const isHourMark = time.endsWith(":00");
-                  const isWorkHour = hour >= 9 && hour < 18;
-
-                  return (
-                    <div
-                      key={time}
-                      className={`grid grid-cols-12 ${
-                        isHourMark ? "border-t-2 border-gray-300" : "border-t border-gray-200"
-                      }`}
-                    >
-                      <div
-                        className={`col-span-2 px-2 py-1 text-sm font-medium text-gray-600 flex items-center ${
-                          isWorkHour ? "bg-blue-50" : "bg-gray-50"
-                        }`}
-                      >
-                        {isHourMark ? time : ""}
-                      </div>
-
-                      <div className={`col-span-10 ${isWorkHour ? "bg-blue-50/30" : ""}`}>
-                        <input
-                          type="text"
-                          value={todayData.timeplan[time] || ""}
-                          onChange={(e) => updateTimeplan(time, e.target.value)}
-                          placeholder={isHourMark ? "일정 입력" : ""}
-                          className="w-full h-full px-2 py-1 text-sm outline-none bg-transparent focus:bg-yellow-50 transition-colors"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 하단 통계 */}
-        <div className="mt-4 bg-white rounded-lg shadow-md p-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-sm text-gray-600">전체 할 일</p>
-              <p className="text-2xl font-bold text-gray-800">{todayData.todos.length}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">완료</p>
-              <p className="text-2xl font-bold text-green-600">
-                {todayData.todos.filter((t) => t.completed).length}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">남은 할 일</p>
-              <p className="text-2xl font-bold text-red-600">
-                {todayData.todos.filter((t) => !t.completed).length}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ 달력 모달 */}
-      {showCalendar && <CalendarModal />}
     </div>
-  );
+
+    <div class="grid">
+      <!-- Left -->
+      <div class="subgrid">
+
+        <!-- TODO -->
+        <div class="card">
+          <div class="row-between" style="margin-bottom:10px">
+            <div class="section-title">
+              <svg class="ico c-red" viewBox="0 0 24 24">
+                <path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>
+              </svg>
+              <div>TO DO LIST</div>
+            </div>
+            <button id="addTodo" class="btn" aria-label="할 일 추가">
+              <svg class="ico c-gray" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
+          </div>
+
+          <div id="todoList"></div>
+        </div>
+
+        <!-- BRAIN DUMP -->
+        <div class="card">
+          <div class="section-title" style="margin-bottom:10px">
+            <svg class="ico c-purple" viewBox="0 0 24 24">
+              <path d="M9.5 2a3.5 3.5 0 0 0-3.2 5.1A3.5 3.5 0 0 0 6 14.5V16a2 2 0 0 0 2 2h1"/>
+              <path d="M14.5 2a3.5 3.5 0 0 1 3.2 5.1A3.5 3.5 0 0 1 18 14.5V16a2 2 0 0 1-2 2h-1"/>
+              <path d="M10 22v-2"/><path d="M14 22v-2"/>
+            </svg>
+            <div>BRAIN DUMP</div>
+          </div>
+          <textarea id="brainDump" placeholder="떠오르는 생각, 아이디어를 자유롭게 적어보세요..."></textarea>
+        </div>
+
+      </div>
+
+      <!-- Right -->
+      <div class="card">
+        <div class="section-title" style="margin-bottom:10px">
+          <svg class="ico c-blue" viewBox="0 0 24 24">
+            <path d="M12 6v6l4 2"/><path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z"/>
+          </svg>
+          <div>TIME PLAN</div>
+        </div>
+
+        <div id="timePlan" class="timeplan"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <div class="stats">
+        <div>
+          <div class="stat-label">전체 할 일</div>
+          <div id="statTotal" class="stat-val">0</div>
+        </div>
+        <div>
+          <div class="stat-label">완료</div>
+          <div id="statDone" class="stat-val green">0</div>
+        </div>
+        <div>
+          <div class="stat-label">남은 할 일</div>
+          <div id="statLeft" class="stat-val red">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Modal (hidden by default) -->
+  <div id="modalBack" class="modal-back" style="display:none">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="cal-head">
+        <button id="calPrev" class="btn" aria-label="이전 달">
+          <svg class="ico c-gray" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div id="calTitle" class="cal-title">2026년 1월</div>
+        <button id="calNext" class="btn" aria-label="다음 달">
+          <svg class="ico c-gray" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <div class="dow">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+
+      <div id="calGrid" class="cal-grid"></div>
+
+      <div class="goal-title" id="yearGoalTitle">🎯 2026년 목표</div>
+      <textarea id="yearGoal" class="goal-area" placeholder="올해의 목표를 적어보세요..."></textarea>
+
+      <div class="goal-title" id="monthGoalTitle">📋 1월 목표</div>
+      <textarea id="monthGoal" class="goal-area purple" placeholder="이번 달의 목표를 적어보세요..."></textarea>
+
+      <button id="closeModal" class="close-btn">
+        <svg class="ico" style="color:#fff" viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        닫기
+      </button>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   Simple Timebox Planner
+   - No React, No build
+   - GitHub Pages friendly
+========================= */
+
+const QUOTES = [
+  "오늘 하루도 최선을 다해봐요! 💪",
+  "작은 진전도 진전입니다! 🌟",
+  "당신은 할 수 있어요! ✨",
+  "오늘도 멋진 하루 되세요! 🎯",
+  "한 걸음 한 걸음, 차근차근! 🚀",
+  "당신의 노력은 빛을 발할 거예요! 💫",
+  "오늘의 당신을 응원합니다! 🌈",
+  "완벽하지 않아도 괜찮아요! 💝",
+  "할 수 있다는 믿음이 반입니다! 🌻",
+  "오늘 하루를 즐겨봐요! 🎨"
+];
+
+const TIME_SLOTS = [
+  '05:00','05:30','06:00','06:30','07:00','07:30','08:00','08:30',
+  '09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30',
+  '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30',
+  '17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30',
+  '21:00','21:30','22:00','22:30','23:00','23:30','00:00','00:30',
+  '01:00','01:30','02:00','02:30','03:00','03:30','04:00','04:30'
+];
+
+// storage keys
+const K_DAILY = "tbp_dailyData_v1";
+const K_YEAR  = "tbp_yearGoals_v1";
+const K_MONTH = "tbp_monthGoals_v1";
+
+const $ = (id) => document.getElementById(id);
+
+// State
+let selectedDate = isoDate(new Date());
+let calendarMonth = new Date(); // month currently shown in modal
+let activeTodoId = null;
+
+let dailyData = loadJSON(K_DAILY, {});
+let yearlyGoals = loadJSON(K_YEAR, {});
+let monthlyGoals = loadJSON(K_MONTH, {});
+
+// Init
+setQuote();
+renderAll();
+bindEvents();
+
+// --- Helpers
+function isoDate(d){
+  const dt = new Date(d);
+  dt.setHours(12,0,0,0); // avoid timezone edge
+  return dt.toISOString().slice(0,10);
 }
+function loadJSON(key, fallback){
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
+function saveJSON(key, val){
+  localStorage.setItem(key, JSON.stringify(val));
+}
+function daysKR(){ return ['일','월','화','수','목','금','토']; }
+function formatDateKR(iso){
+  const d = new Date(iso + "T12:00:00");
+  const m = d.getMonth()+1;
+  const day = d.getDate();
+  const dow = daysKR()[d.getDay()];
+  return `${m}월 ${day}일 (${dow})`;
+}
+function getToday(){
+  return dailyData[selectedDate] || { todos: [], timeplan: {}, braindump: "" };
+}
+function setToday(updates){
+  dailyData[selectedDate] = { ...getToday(), ...updates };
+  saveJSON(K_DAILY, dailyData);
+}
+function hasData(dateStr){
+  const d = dailyData[dateStr];
+  if(!d) return false;
+  return (d.todos && d.todos.length) || (d.timeplan && Object.keys(d.timeplan).length) || (d.braindump && d.braindump.trim());
+}
+function setQuote(){
+  const q = QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  $("quote").textContent = q;
+}
+
+// --- Rendering
+function renderAll(){
+  $("dateTitle").textContent = formatDateKR(selectedDate);
+  renderTodos();
+  renderBrain();
+  renderTimePlan();
+  renderStats();
+}
+function renderTodos(){
+  const wrap = $("todoList");
+  const data = getToday();
+  const todos = data.todos || [];
+
+  if(todos.length === 0){
+    wrap.innerHTML = `<div class="todo-empty">할 일을 추가해보세요</div>`;
+    return;
+  }
+
+  wrap.innerHTML = todos.map(t => {
+    const active = (activeTodoId === t.id) ? "active" : "";
+    const checked = t.completed ? "checked" : "";
+    const line = t.completed ? "style='text-decoration:line-through;color:#9ca3af'" : "";
+    return `
+      <div class="todo-row ${active}" data-todo-row="1" data-id="${t.id}">
+        <input class="chk" type="checkbox" ${checked} data-act="toggle" />
+        <input class="todo-text" type="text" value="${escapeHTML(t.text||"")}" placeholder="할 일 입력" data-act="text" ${line}/>
+        ${
+          activeTodoId === t.id
+          ? `<button class="btn trash-btn" data-act="del" aria-label="삭제">
+               <svg class="ico c-red" viewBox="0 0 24 24">
+                 <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+               </svg>
+             </button>`
+          : `<div style="width:44px"></div>`
+        }
+      </div>
+    `;
+  }).join("");
+}
+function renderBrain(){
+  $("brainDump").value = getToday().braindump || "";
+}
+function renderTimePlan(){
+  const host = $("timePlan");
+  const data = getToday();
+  const tp = data.timeplan || {};
+
+  host.innerHTML = TIME_SLOTS.map(time => {
+    const hour = parseInt(time.split(":")[0], 10);
+    const isHour = time.endsWith(":00");
+    const isWork = (hour >= 9 && hour < 18);
+    const clsRow = `tp-row ${isHour ? "hour":""}`;
+    const clsTime = `tp-time ${isWork ? "work":""}`;
+    const clsCell = `tp-cell ${isWork ? "work":""}`;
+    const label = isHour ? time : "";
+    const val = tp[time] || "";
+    const ph = isHour ? "일정 입력" : "";
+    return `
+      <div class="${clsRow}" data-time="${time}">
+        <div class="${clsTime}">${label}</div>
+        <div class="${clsCell}">
+          <input class="tp-input" value="${escapeHTML(val)}" placeholder="${ph}" />
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+function renderStats(){
+  const todos = (getToday().todos || []);
+  const total = todos.length;
+  const done = todos.filter(t=>t.completed).length;
+  const left = total - done;
+  $("statTotal").textContent = total;
+  $("statDone").textContent = done;
+  $("statLeft").textContent = left;
+}
+
+// --- Events
+function bindEvents(){
+  $("prevDay").addEventListener("click", ()=> changeDate(-1));
+  $("nextDay").addEventListener("click", ()=> changeDate(1));
+  $("openCal1").addEventListener("click", openCalendar);
+  $("openCal2").addEventListener("click", openCalendar);
+
+  $("addTodo").addEventListener("click", addTodo);
+
+  // Todo delegation
+  $("todoList").addEventListener("click", (e)=>{
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if(!row) return;
+    const id = Number(row.dataset.id);
+    activeTodoId = id;
+    renderTodos();
+  });
+  $("todoList").addEventListener("change", (e)=>{
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if(!row) return;
+    const id = Number(row.dataset.id);
+    if(e.target.dataset.act === "toggle"){
+      toggleTodo(id, e.target.checked);
+    }
+  });
+  $("todoList").addEventListener("input", (e)=>{
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if(!row) return;
+    const id = Number(row.dataset.id);
+    if(e.target.dataset.act === "text"){
+      updateTodoText(id, e.target.value);
+    }
+  });
+  $("todoList").addEventListener("click", (e)=>{
+    if(e.target.closest?.("[data-act='del']")){
+      const row = e.target.closest("[data-todo-row='1']");
+      const id = Number(row.dataset.id);
+      deleteTodo(id);
+      e.stopPropagation();
+    }
+  });
+
+  // Click outside todo to hide trash
+  document.addEventListener("click", (e)=>{
+    const insideTodo = e.target.closest?.("[data-todo-row='1']");
+    const insideAdd = e.target.closest?.("#addTodo");
+    if(!insideTodo && !insideAdd){
+      if(activeTodoId !== null){
+        activeTodoId = null;
+        renderTodos();
+      }
+    }
+  });
+
+  // Brain dump
+  $("brainDump").addEventListener("input", (e)=>{
+    setToday({ braindump: e.target.value });
+  });
+
+  // Time plan input delegation
+  $("timePlan").addEventListener("input", (e)=>{
+    const row = e.target.closest?.("[data-time]");
+    if(!row) return;
+    const time = row.dataset.time;
+    const tp = { ...(getToday().timeplan || {}) };
+    tp[time] = e.target.value;
+    setToday({ timeplan: tp });
+  });
+
+  // Modal
+  $("closeModal").addEventListener("click", closeCalendar);
+  $("modalBack").addEventListener("click", (e)=>{
+    if(e.target.id === "modalBack") closeCalendar();
+  });
+
+  $("calPrev").addEventListener("click", ()=> changeCalMonth(-1));
+  $("calNext").addEventListener("click", ()=> changeCalMonth(1));
+
+  $("yearGoal").addEventListener("input", (e)=>{
+    const y = String(calendarMonth.getFullYear());
+    yearlyGoals[y] = e.target.value;
+    saveJSON(K_YEAR, yearlyGoals);
+  });
+
+  $("monthGoal").addEventListener("input", (e)=>{
+    const key = monthKey(calendarMonth);
+    monthlyGoals[key] = e.target.value;
+    saveJSON(K_MONTH, monthlyGoals);
+  });
+}
+
+function changeDate(delta){
+  const d = new Date(selectedDate + "T12:00:00");
+  d.setDate(d.getDate()+delta);
+  selectedDate = isoDate(d);
+  activeTodoId = null;
+  renderAll();
+}
+
+function addTodo(){
+  const data = getToday();
+  const todos = data.todos || [];
+  const t = { id: Date.now(), text: "", completed:false };
+  todos.push(t);
+  setToday({ todos });
+  activeTodoId = t.id;
+  renderTodos();
+  renderStats();
+}
+
+function toggleTodo(id, checked){
+  const data = getToday();
+  const todos = (data.todos || []).map(t => t.id===id ? {...t, completed:checked} : t);
+  setToday({ todos });
+  renderTodos();
+  renderStats();
+}
+
+function updateTodoText(id, text){
+  const data = getToday();
+  const todos = (data.todos || []).map(t => t.id===id ? {...t, text} : t);
+  setToday({ todos });
+  renderStats();
+}
+
+function deleteTodo(id){
+  const data = getToday();
+  const todos = (data.todos || []).filter(t => t.id!==id);
+  setToday({ todos });
+  activeTodoId = null;
+  renderTodos();
+  renderStats();
+}
+
+// --- Calendar Modal
+function openCalendar(){
+  calendarMonth = new Date(selectedDate + "T12:00:00");
+  calendarMonth.setDate(1);
+  $("modalBack").style.display = "flex";
+  renderCalendar();
+}
+function closeCalendar(){
+  $("modalBack").style.display = "none";
+}
+function changeCalMonth(offset){
+  const d = new Date(calendarMonth);
+  d.setMonth(d.getMonth()+offset);
+  calendarMonth = d;
+  renderCalendar();
+}
+function monthKey(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  return `${y}-${m}`;
+}
+function renderCalendar(){
+  const y = calendarMonth.getFullYear();
+  const m = calendarMonth.getMonth(); // 0-based
+  $("calTitle").textContent = `${y}년 ${m+1}월`;
+
+  // goals
+  $("yearGoalTitle").textContent = `🎯 ${y}년 목표`;
+  $("monthGoalTitle").textContent = `📋 ${m+1}월 목표`;
+  $("yearGoal").value = yearlyGoals[String(y)] || "";
+  $("monthGoal").value = monthlyGoals[monthKey(calendarMonth)] || "";
+
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m+1, 0);
+  const daysInMonth = last.getDate();
+  const startDow = first.getDay();
+
+  const grid = $("calGrid");
+  let html = "";
+
+  for(let i=0;i<startDow;i++){
+    html += `<div></div>`;
+  }
+
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(y, m, day);
+    const iso = isoDate(d);
+    const isSel = (iso === selectedDate);
+    const isToday = (iso === isoDate(new Date()));
+    const cls = `day ${isSel ? "sel" : (isToday ? "today" : "")}`;
+    const dot = (hasData(iso) && !isSel) ? `<div class="dot"></div>` : "";
+    html += `<button class="${cls}" data-day="${day}">${day}${dot}</button>`;
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll("button.day").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const day = Number(btn.dataset.day);
+      const d = new Date(y, m, day);
+      selectedDate = isoDate(d);
+      closeCalendar();
+      activeTodoId = null;
+      renderAll();
+    });
+  });
+}
+
+// --- Safe HTML
+function escapeHTML(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+// Service Worker
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
