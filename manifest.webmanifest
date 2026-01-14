@@ -1,9 +1,21 @@
 {
   "name": "Timebox Planner",
   "short_name": "Timebox",
-  "start_url": "./",
+  "start_url": "/timebox-planner/",
+  "scope": "/timebox-planner/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
-  "icons": []
+  "icons": [
+    {
+      "src": "/timebox-planner/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/timebox-planner/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
