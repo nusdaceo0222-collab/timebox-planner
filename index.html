@@ -37,13 +37,13 @@
       color:#fff;border-radius:14px;padding:14px 16px;
       box-shadow:var(--shadow); text-align:center; font-weight:800;
       margin-bottom:12px;
-      line-height: 1.25;
+      line-height:1.25;
     }
     .card{
       background:var(--card);border-radius:var(--radius);
       box-shadow:var(--shadow); padding:14px; margin-bottom:12px;
     }
-    .row{display:flex;align-items:center;gap:10px}
+    .row{display:flex;align-items:center;gap:10px; min-width:0;} /* ✅ flex 안 텍스트 축소 허용 */
     .row-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .btn{
       border:0;background:transparent; padding:10px; border-radius:12px;
@@ -52,14 +52,6 @@
     .btn:hover{background:#f3f4f6}
     .btn-indigo:hover{background:#eef2ff}
     .h1{font-size:22px;margin:0;font-weight:900}
-
-    /* ✅ 날짜 1줄 고정 + 반응형 */
-    #dateTitle{
-      white-space: nowrap;
-      font-size: clamp(18px, 4.8vw, 22px);
-      line-height: 1.1;
-    }
-
     .section-title{
       display:flex;align-items:center;gap:8px;
       font-weight:900; letter-spacing:.3px;
@@ -81,6 +73,7 @@
       flex:1; border:0; border-bottom:1px solid var(--border);
       padding:6px 6px; outline:none; background:transparent;
       font-size:14px;
+      min-width:0;
     }
     .todo-text:focus{border-bottom-color:#fca5a5}
     .chk{width:20px;height:20px}
@@ -124,6 +117,7 @@
     .tp-input{
       border:0; outline:none; padding:8px 10px; font-size:13px;
       background:transparent;
+      width:100%;
     }
     .tp-input:focus{background:#fffbeb}
     .tp-cell.work{background:rgba(239,246,255,.45)}
@@ -183,12 +177,25 @@
     .c-red{color:#ef4444}
     .c-blue{color:#2563eb}
     .c-purple{color:#7c3aed}
+
+    /* ✅ 날짜 1줄 고정(모바일에서 확실) */
+    #openCal2{min-width:0; max-width:100%;}
+    #dateTitle{
+      display:block;
+      white-space:nowrap;                 /* 줄바꿈 금지 */
+      font-size:clamp(16px,4.6vw,22px);   /* 화면에 맞게 자동 축소 */
+      line-height:1.1;
+      max-width:70vw;                     /* 작은 화면에서 안전 */
+      overflow:hidden;
+      text-overflow:ellipsis;
+      margin:0;
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div id="quote" class="quote">오늘도 당신을 응원합니다.</div>
+    <div id="quote" class="quote">오늘 할 수 있는 만큼만 하자.</div>
 
     <!-- Header -->
     <div class="card">
@@ -318,11 +325,12 @@
 <script>
 /* =========================
    Simple Timebox Planner
-   - No React, No build
-   - GitHub Pages friendly
+   - Date 1-line on mobile
+   - Todo: checked items move below unchecked
+   - Quotes: user-provided 30 sentences (random)
 ========================= */
 
-/* ✅ 동기부여 문구: 사용자 제공 30문장 */
+/* ✅ 사용자 제공 30문장(랜덤 표시) */
 const QUOTES = [
   "오늘 할 수 있는 만큼만 하자.",
   "지금 한 칸이면 충분하다.",
@@ -381,12 +389,15 @@ let dailyData = loadJSON(K_DAILY, {});
 let yearlyGoals = loadJSON(K_YEAR, {});
 let monthlyGoals = loadJSON(K_MONTH, {});
 
+// ✅ 과거 TODO에 createdAt 없으면 1회 보정(정렬 안정)
+migrateTodos();
+
 // Init
 setQuote();
 renderAll();
 bindEvents();
 
-// --- Helpers
+/* ---------------- Helpers ---------------- */
 function focusTodoInput(id){
   requestAnimationFrame(() => {
     const row = document.querySelector(`[data-todo-row="1"][data-id="${id}"]`);
@@ -397,7 +408,7 @@ function focusTodoInput(id){
     const v = input.value ?? "";
     try { input.setSelectionRange(v.length, v.length); } catch {}
 
-    // ✅ 모바일에서 키보드/커서가 늦는 경우 한 번 더
+    // 모바일 포커스 안정(키보드/커서 핸들)
     setTimeout(() => {
       input.focus();
       const v2 = input.value ?? "";
@@ -442,8 +453,29 @@ function setQuote(){
   const q = QUOTES[Math.floor(Math.random()*QUOTES.length)];
   $("quote").textContent = q;
 }
+function migrateTodos(){
+  let changed = false;
+  for (const dateKey of Object.keys(dailyData || {})){
+    const day = dailyData[dateKey];
+    if(!day || !Array.isArray(day.todos)) continue;
+    day.todos = day.todos.map(t=>{
+      if(t && t.createdAt == null){
+        changed = true;
+        return { ...t, createdAt: t.id }; // 과거 항목도 생성시간 대용
+      }
+      return t;
+    });
+  }
+  if(changed) saveJSON(K_DAILY, dailyData);
+}
+function sortTodos(todos){
+  return (todos || []).slice().sort((a,b)=>{
+    if (a.completed !== b.completed) return a.completed ? 1 : -1; // 미완료 먼저
+    return (a.createdAt ?? a.id) - (b.createdAt ?? b.id);        // 생성순
+  });
+}
 
-// --- Rendering
+/* ---------------- Rendering ---------------- */
 function renderAll(){
   $("dateTitle").textContent = formatDateKR(selectedDate);
   renderTodos();
@@ -451,18 +483,10 @@ function renderAll(){
   renderTimePlan();
   renderStats();
 }
-
 function renderTodos(){
   const wrap = $("todoList");
   const data = getToday();
-
-  /* ✅ 체크된 항목은 아래로 이동: 렌더 시 정렬(미완료 → 완료) */
-  const todos = (data.todos || [])
-    .slice()
-    .sort((a,b)=>{
-      if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      return (a.createdAt ?? a.id) - (b.createdAt ?? b.id);
-    });
+  const todos = sortTodos(data.todos);
 
   if(todos.length === 0){
     wrap.innerHTML = `<div class="todo-empty">할 일을 추가해보세요</div>`;
@@ -476,9 +500,9 @@ function renderTodos(){
     return `
       <div class="todo-row ${active}" data-todo-row="1" data-id="${t.id}">
         <input class="chk" type="checkbox" ${checked} data-act="toggle" />
-        <input class="todo-text" type="text" value="${escapeHTML(t.text||"")}"
+        <input class="todo-text" type="text"
+               value="${escapeHTML(t.text||"")}"
                placeholder="할 일 입력" data-act="text" ${line} />
-
         <button class="btn trash-btn" data-act="del" aria-label="삭제">
           <svg class="ico c-red" viewBox="0 0 24 24">
             <path d="M3 6h18"/><path d="M8 6V4h8v2"/>
@@ -490,11 +514,9 @@ function renderTodos(){
     `;
   }).join("");
 }
-
 function renderBrain(){
   $("brainDump").value = getToday().braindump || "";
 }
-
 function renderTimePlan(){
   const host = $("timePlan");
   const data = getToday();
@@ -520,7 +542,6 @@ function renderTimePlan(){
     `;
   }).join("");
 }
-
 function renderStats(){
   const todos = (getToday().todos || []);
   const total = todos.length;
@@ -531,7 +552,7 @@ function renderStats(){
   $("statLeft").textContent = left;
 }
 
-// --- Events
+/* ---------------- Events ---------------- */
 function bindEvents(){
   $("prevDay").addEventListener("click", ()=> changeDate(-1));
   $("nextDay").addEventListener("click", ()=> changeDate(1));
@@ -540,18 +561,15 @@ function bindEvents(){
 
   $("addTodo").addEventListener("click", addTodo);
 
-  /* ✅ TODO 이벤트: 입력 방해 없도록 "재렌더 최소화" */
+  // ✅ 입력 방해 없이 active 표시만 class로 처리
   $("todoList").addEventListener("click", (e) => {
     const row = e.target.closest?.("[data-todo-row='1']");
     if (!row) return;
 
-    // input/checkbox/button 클릭은 그냥 통과(입력 방해 금지)
+    // input/checkbox/button 누를 때는 렌더/클래스 토글로 방해하지 않기
     if (e.target.matches("input") || e.target.closest("button")) return;
 
-    const id = Number(row.dataset.id);
-    activeTodoId = id;
-
-    // ✅ DOM 전체 재렌더 대신 class만 토글
+    activeTodoId = Number(row.dataset.id);
     document.querySelectorAll("[data-todo-row='1']").forEach(r => r.classList.remove("active"));
     row.classList.add("active");
   });
@@ -560,10 +578,7 @@ function bindEvents(){
     const row = e.target.closest?.("[data-todo-row='1']");
     if (!row) return;
 
-    const id = Number(row.dataset.id);
-    activeTodoId = id;
-
-    // ✅ DOM 전체 재렌더 금지(모바일 입력 안정)
+    activeTodoId = Number(row.dataset.id);
     document.querySelectorAll("[data-todo-row='1']").forEach(r => r.classList.remove("active"));
     row.classList.add("active");
   });
@@ -574,7 +589,7 @@ function bindEvents(){
 
     const id = Number(row.dataset.id);
     if (e.target.dataset.act === "toggle") {
-      toggleTodo(id, e.target.checked);
+      toggleTodo(id, e.target.checked); // ✅ 체크 즉시 아래로 이동
     }
   });
 
@@ -615,7 +630,7 @@ function bindEvents(){
     setToday({ braindump: e.target.value });
   });
 
-  // Time plan input delegation
+  // Time plan
   $("timePlan").addEventListener("input", (e)=>{
     const row = e.target.closest?.("[data-time]");
     if(!row) return;
@@ -652,7 +667,7 @@ function changeDate(delta){
   d.setDate(d.getDate()+delta);
   selectedDate = isoDate(d);
   activeTodoId = null;
-  setQuote();       // ✅ 날짜 이동할 때 문구도 새로 랜덤
+  setQuote();     // ✅ 날짜 이동 시 문구도 랜덤 갱신
   renderAll();
 }
 
@@ -667,20 +682,23 @@ function addTodo(){
   setToday({ todos });
 
   activeTodoId = t.id;
-
   renderTodos();
   renderStats();
   focusTodoInput(t.id);
 }
 
+/* ✅ 체크하면 미체크 아래로 이동: 데이터 자체 정렬 후 저장 */
 function toggleTodo(id, checked){
   const data = getToday();
-  const todos = (data.todos || []).map(t => t.id===id ? {...t, completed:checked} : t);
+
+  let todos = (data.todos || []).map(t =>
+    t.id === id ? { ...t, completed: checked } : t
+  );
+
+  todos = sortTodos(todos);     // ✅ 정렬을 "저장"해서 항상 아래로 이동
   setToday({ todos });
 
-  activeTodoId = null; // ✅ 체크 순간 active 해제(선택사항)
-
-  // ✅ 정렬 렌더로 인해 체크된 항목이 아래로 자동 이동
+  activeTodoId = null;
   renderTodos();
   renderStats();
 }
@@ -701,7 +719,7 @@ function deleteTodo(id){
   renderStats();
 }
 
-// --- Calendar Modal
+/* ---------------- Calendar Modal ---------------- */
 function openCalendar(){
   calendarMonth = new Date(selectedDate + "T12:00:00");
   calendarMonth.setDate(1);
@@ -763,13 +781,13 @@ function renderCalendar(){
       selectedDate = isoDate(d);
       closeCalendar();
       activeTodoId = null;
-      setQuote();   // ✅ 날짜 선택 시 문구도 새로 랜덤
+      setQuote();   // ✅ 날짜 선택 시 문구 갱신
       renderAll();
     });
   });
 }
 
-// --- Safe HTML
+/* ---------------- Safe HTML ---------------- */
 function escapeHTML(s){
   return String(s)
     .replaceAll("&","&amp;")
@@ -779,7 +797,7 @@ function escapeHTML(s){
     .replaceAll("'","&#039;");
 }
 
-// Service Worker
+/* ---------------- Service Worker ---------------- */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
     navigator.serviceWorker.register("./sw.js").catch(()=>{});
