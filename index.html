@@ -797,12 +797,23 @@ function escapeHTML(s){
     .replaceAll("'","&#039;");
 }
 
-/* ---------------- Service Worker ---------------- */
+// Service Worker (업데이트 강제)
 if ("serviceWorker" in navigator){
-  window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  window.addEventListener("load", async ()=>{
+    try{
+      const reg = await navigator.serviceWorker.register("./sw.js");
+
+      // ✅ 새 버전 체크
+      reg.update();
+
+      // ✅ 새 SW가 적용되면 자동 새로고침
+      navigator.serviceWorker.addEventListener("controllerchange", ()=>{
+        window.location.reload();
+      });
+    }catch(e){}
   });
 }
+
 </script>
 </body>
 </html>
