@@ -35,8 +35,9 @@
     .quote{
       background: linear-gradient(90deg, var(--indigo), var(--purple));
       color:#fff;border-radius:14px;padding:14px 16px;
-      box-shadow:var(--shadow); text-align:center; font-weight:700;
+      box-shadow:var(--shadow); text-align:center; font-weight:800;
       margin-bottom:12px;
+      line-height: 1.25;
     }
     .card{
       background:var(--card);border-radius:var(--radius);
@@ -50,10 +51,18 @@
     }
     .btn:hover{background:#f3f4f6}
     .btn-indigo:hover{background:#eef2ff}
-    .h1{font-size:22px;margin:0;font-weight:800}
+    .h1{font-size:22px;margin:0;font-weight:900}
+
+    /* ✅ 날짜 1줄 고정 + 반응형 */
+    #dateTitle{
+      white-space: nowrap;
+      font-size: clamp(18px, 4.8vw, 22px);
+      line-height: 1.1;
+    }
+
     .section-title{
       display:flex;align-items:center;gap:8px;
-      font-weight:800; letter-spacing:.3px;
+      font-weight:900; letter-spacing:.3px;
     }
     .grid{
       display:grid;grid-template-columns: 1fr; gap:12px;
@@ -77,24 +86,26 @@
     .chk{width:20px;height:20px}
     .trash-btn{padding:10px;border-radius:12px}
     .trash-btn:hover{background:#fff1f2}
-/* ✅ 삭제버튼은 항상 존재시키고, 보이기만 제어 */
-.todo-row .trash-btn{
-  opacity:0;
-  pointer-events:none;
-}
-.todo-row.active .trash-btn,
-.todo-row:focus-within .trash-btn{
-  opacity:1;
-  pointer-events:auto;
-}
 
-    
+    /* ✅ 삭제버튼은 항상 존재시키고, 보이기만 제어 */
+    .todo-row .trash-btn{
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .12s ease;
+    }
+    .todo-row.active .trash-btn,
+    .todo-row:focus-within .trash-btn{
+      opacity:1;
+      pointer-events:auto;
+    }
+
     textarea{
       width:100%; border:1px solid var(--border);
       border-radius:14px; padding:12px; outline:none; resize:none;
       font-size:14px; min-height:220px;
     }
     textarea:focus{border-color:#c4b5fd}
+
     /* TIME PLAN */
     .timeplan{
       border:1px solid #d1d5db; border-radius:14px; overflow:hidden;
@@ -116,6 +127,7 @@
     }
     .tp-input:focus{background:#fffbeb}
     .tp-cell.work{background:rgba(239,246,255,.45)}
+
     /* Stats */
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
     .stat-label{font-size:12px;color:var(--muted)}
@@ -144,7 +156,7 @@
       aspect-ratio:1/1;border:0;border-radius:12px;background:transparent;
       cursor:pointer; position:relative;
       display:flex;align-items:center;justify-content:center;
-      font-weight:800;
+      font-weight:900;
     }
     .day:hover{background:#f3f4f6}
     .day.today{background:#eef2ff;color:#3730a3}
@@ -163,6 +175,7 @@
       display:flex; align-items:center; justify-content:center; gap:8px;
     }
     .close-btn:hover{filter:brightness(.95)}
+
     /* Icons */
     .ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     .c-gray{color:#374151}
@@ -175,7 +188,7 @@
 
 <body>
   <div class="wrap">
-    <div id="quote" class="quote">오늘도 멋진 하루 되세요! 🎯</div>
+    <div id="quote" class="quote">오늘도 당신을 응원합니다.</div>
 
     <!-- Header -->
     <div class="card">
@@ -309,17 +322,38 @@
    - GitHub Pages friendly
 ========================= */
 
+/* ✅ 동기부여 문구: 사용자 제공 30문장 */
 const QUOTES = [
-  "오늘 하루도 최선을 다해봐요! 💪",
-  "작은 진전도 진전입니다! 🌟",
-  "당신은 할 수 있어요! ✨",
-  "오늘도 멋진 하루 되세요! 🎯",
-  "한 걸음 한 걸음, 차근차근! 🚀",
-  "당신의 노력은 빛을 발할 거예요! 💫",
-  "오늘의 당신을 응원합니다! 🌈",
-  "완벽하지 않아도 괜찮아요! 💝",
-  "할 수 있다는 믿음이 반입니다! 🌻",
-  "오늘 하루를 즐겨봐요! 🎨"
+  "오늘 할 수 있는 만큼만 하자.",
+  "지금 한 칸이면 충분하다.",
+  "오늘은 여기서부터 시작.",
+  "속도보다 지속.",
+  "지금도 잘 가고 있다.",
+  "오늘은 이 정도면 된다.",
+  "멈추지 않았으면 충분하다.",
+  "작은 한 걸음도 방향이다.",
+  "오늘의 선택이 내일을 돕는다.",
+  "지금 할 수 있는 것을 한다.",
+  "오늘의 당신을 응원합니다.",
+  "천천히 가도 괜찮습니다.",
+  "오늘도 포기하지 않아서 충분합니다.",
+  "지금까지 잘 버텼습니다.",
+  "쉬어도 괜찮고, 다시 가면 됩니다.",
+  "흔들려도 경로 안에 있습니다.",
+  "오늘은 버틴 것만으로도 충분합니다.",
+  "잘하려 하지 않아도 됩니다.",
+  "지금의 나도 괜찮습니다.",
+  "오늘은 나를 몰아붙이지 않습니다.",
+  "직선은 없습니다. 계속 가면 됩니다.",
+  "느려도 경로 안에 있습니다.",
+  "오늘은 이기지 않아도 됩니다.",
+  "버티는 것도 작업입니다.",
+  "완벽 말고 진행.",
+  "비교하지 말고 이어갑니다.",
+  "오늘은 방향을 지키는 날입니다.",
+  "지금의 반복이 나를 만듭니다.",
+  "오늘의 한 칸은 사라지지 않습니다.",
+  "지금 이 순간도 과정입니다."
 ];
 
 const TIME_SLOTS = [
@@ -354,17 +388,24 @@ bindEvents();
 
 // --- Helpers
 function focusTodoInput(id){
-  // 렌더 후 해당 input을 다시 찾아 포커스를 복구(모바일 물방울/커서핸들 포함)
   requestAnimationFrame(() => {
     const row = document.querySelector(`[data-todo-row="1"][data-id="${id}"]`);
     const input = row?.querySelector(`input[data-act="text"]`);
     if(!input) return;
-    input.focus({ preventScroll: true });
-    // 커서를 맨 뒤로
+
+    input.focus();
     const v = input.value ?? "";
-    input.setSelectionRange(v.length, v.length);
+    try { input.setSelectionRange(v.length, v.length); } catch {}
+
+    // ✅ 모바일에서 키보드/커서가 늦는 경우 한 번 더
+    setTimeout(() => {
+      input.focus();
+      const v2 = input.value ?? "";
+      try { input.setSelectionRange(v2.length, v2.length); } catch {}
+    }, 0);
   });
-}  
+}
+
 function isoDate(d){
   const dt = new Date(d);
   dt.setHours(12,0,0,0); // avoid timezone edge
@@ -410,10 +451,18 @@ function renderAll(){
   renderTimePlan();
   renderStats();
 }
+
 function renderTodos(){
   const wrap = $("todoList");
   const data = getToday();
-  const todos = data.todos || [];
+
+  /* ✅ 체크된 항목은 아래로 이동: 렌더 시 정렬(미완료 → 완료) */
+  const todos = (data.todos || [])
+    .slice()
+    .sort((a,b)=>{
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return (a.createdAt ?? a.id) - (b.createdAt ?? b.id);
+    });
 
   if(todos.length === 0){
     wrap.innerHTML = `<div class="todo-empty">할 일을 추가해보세요</div>`;
@@ -427,24 +476,25 @@ function renderTodos(){
     return `
       <div class="todo-row ${active}" data-todo-row="1" data-id="${t.id}">
         <input class="chk" type="checkbox" ${checked} data-act="toggle" />
-        <input class="todo-text" type="text" value="${escapeHTML(t.text||"")}" placeholder="할 일 입력" data-act="text" ${line}/>
+        <input class="todo-text" type="text" value="${escapeHTML(t.text||"")}"
+               placeholder="할 일 입력" data-act="text" ${line} />
 
-<button class="btn trash-btn" data-act="del" aria-label="삭제">
-  <svg class="ico c-red" viewBox="0 0 24 24">
-    <path d="M3 6h18"/><path d="M8 6V4h8v2"/>
-    <path d="M19 6l-1 14H6L5 6"/>
-    <path d="M10 11v6"/><path d="M14 11v6"/>
-  </svg>
-</button>
-
-        
+        <button class="btn trash-btn" data-act="del" aria-label="삭제">
+          <svg class="ico c-red" viewBox="0 0 24 24">
+            <path d="M3 6h18"/><path d="M8 6V4h8v2"/>
+            <path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+          </svg>
+        </button>
       </div>
     `;
   }).join("");
 }
+
 function renderBrain(){
   $("brainDump").value = getToday().braindump || "";
 }
+
 function renderTimePlan(){
   const host = $("timePlan");
   const data = getToday();
@@ -470,6 +520,7 @@ function renderTimePlan(){
     `;
   }).join("");
 }
+
 function renderStats(){
   const todos = (getToday().todos || []);
   const total = todos.length;
@@ -489,69 +540,63 @@ function bindEvents(){
 
   $("addTodo").addEventListener("click", addTodo);
 
-  // Todo delegation
-  // Todo delegation (FIXED)
-$("todoList").addEventListener("click", (e) => {
-  const row = e.target.closest?.("[data-todo-row='1']");
-  if (!row) return;
+  /* ✅ TODO 이벤트: 입력 방해 없도록 "재렌더 최소화" */
+  $("todoList").addEventListener("click", (e) => {
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if (!row) return;
 
-  const id = Number(row.dataset.id);
+    // input/checkbox/button 클릭은 그냥 통과(입력 방해 금지)
+    if (e.target.matches("input") || e.target.closest("button")) return;
 
-  // ✅ 입력칸/체크박스/삭제버튼을 누를 때는 여기서 "즉시 재렌더"하지 않음
-  // (즉시 재렌더하면 포커스가 날아가서 입력이 안됨)
-  const isInput = e.target.matches("input");
-  const isButton = e.target.closest("button");
-  if (isInput || isButton) return;
+    const id = Number(row.dataset.id);
+    activeTodoId = id;
 
-  activeTodoId = id;
-  renderTodos();
-});
+    // ✅ DOM 전체 재렌더 대신 class만 토글
+    document.querySelectorAll("[data-todo-row='1']").forEach(r => r.classList.remove("active"));
+    row.classList.add("active");
+  });
 
-$("todoList").addEventListener("focusin", (e) => {
-  const row = e.target.closest?.("[data-todo-row='1']");
-  if (!row) return;
+  $("todoList").addEventListener("focusin", (e) => {
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if (!row) return;
 
-  const id = Number(row.dataset.id);
-  activeTodoId = id;
+    const id = Number(row.dataset.id);
+    activeTodoId = id;
 
-  // ✅ DOM 전체 재렌더 금지! (모바일에서 키보드 안뜨는 원인)
-  document.querySelectorAll("[data-todo-row='1']").forEach(r => r.classList.remove("active"));
-  row.classList.add("active");
-});
+    // ✅ DOM 전체 재렌더 금지(모바일 입력 안정)
+    document.querySelectorAll("[data-todo-row='1']").forEach(r => r.classList.remove("active"));
+    row.classList.add("active");
+  });
 
+  $("todoList").addEventListener("change", (e) => {
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if (!row) return;
 
-$("todoList").addEventListener("change", (e) => {
-  const row = e.target.closest?.("[data-todo-row='1']");
-  if (!row) return;
+    const id = Number(row.dataset.id);
+    if (e.target.dataset.act === "toggle") {
+      toggleTodo(id, e.target.checked);
+    }
+  });
 
-  const id = Number(row.dataset.id);
+  $("todoList").addEventListener("input", (e) => {
+    const row = e.target.closest?.("[data-todo-row='1']");
+    if (!row) return;
 
-  if (e.target.dataset.act === "toggle") {
-    toggleTodo(id, e.target.checked);
-  }
-});
+    const id = Number(row.dataset.id);
+    if (e.target.dataset.act === "text") {
+      updateTodoText(id, e.target.value);
+    }
+  });
 
-$("todoList").addEventListener("input", (e) => {
-  const row = e.target.closest?.("[data-todo-row='1']");
-  if (!row) return;
+  $("todoList").addEventListener("click", (e) => {
+    const delBtn = e.target.closest?.("[data-act='del']");
+    if (!delBtn) return;
 
-  const id = Number(row.dataset.id);
-
-  if (e.target.dataset.act === "text") {
-    updateTodoText(id, e.target.value);
-  }
-});
-
-$("todoList").addEventListener("click", (e) => {
-  const delBtn = e.target.closest?.("[data-act='del']");
-  if (!delBtn) return;
-
-  const row = e.target.closest("[data-todo-row='1']");
-  const id = Number(row.dataset.id);
-  deleteTodo(id);
-  e.stopPropagation();
-});
-
+    const row = e.target.closest("[data-todo-row='1']");
+    const id = Number(row.dataset.id);
+    deleteTodo(id);
+    e.stopPropagation();
+  });
 
   // Click outside todo to hide trash
   document.addEventListener("click", (e)=>{
@@ -607,28 +652,37 @@ function changeDate(delta){
   d.setDate(d.getDate()+delta);
   selectedDate = isoDate(d);
   activeTodoId = null;
+  setQuote();       // ✅ 날짜 이동할 때 문구도 새로 랜덤
   renderAll();
 }
 
 function addTodo(){
   const data = getToday();
   const todos = data.todos || [];
-  const t = { id: Date.now(), text: "", completed:false };
+
+  const now = Date.now();
+  const t = { id: now, text: "", completed:false, createdAt: now };
+
   todos.push(t);
   setToday({ todos });
+
   activeTodoId = t.id;
+
   renderTodos();
   renderStats();
-  focusTodoInput(t.id); // ✅ 추가: 새로 만든 입력칸에 커서/물방울 표시
+  focusTodoInput(t.id);
 }
 
 function toggleTodo(id, checked){
   const data = getToday();
   const todos = (data.todos || []).map(t => t.id===id ? {...t, completed:checked} : t);
   setToday({ todos });
+
+  activeTodoId = null; // ✅ 체크 순간 active 해제(선택사항)
+
+  // ✅ 정렬 렌더로 인해 체크된 항목이 아래로 자동 이동
   renderTodos();
   renderStats();
-  // focusTodoInput(t.id);   // ✅ 추가: 새 항목 입력칸에 커서 + 파란 물방울 뜸
 }
 
 function updateTodoText(id, text){
@@ -709,6 +763,7 @@ function renderCalendar(){
       selectedDate = isoDate(d);
       closeCalendar();
       activeTodoId = null;
+      setQuote();   // ✅ 날짜 선택 시 문구도 새로 랜덤
       renderAll();
     });
   });
