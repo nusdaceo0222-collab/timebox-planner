@@ -691,7 +691,67 @@ html, body {
   height: calc(76px + env(safe-area-inset-bottom));
 }
 
+@media (max-width: 600px) {
+  .wrap {
+    padding: 14px 12px 96px;
+  }
 
+  .card {
+    padding: 12px;
+    border-radius: 16px;
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-size: 17px;
+  }
+
+  .ico {
+    width: 20px;
+    height: 20px;
+  }
+
+  .todo-row {
+    gap: 8px;
+    padding: 4px 2px;
+  }
+
+  .chk {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+  }
+
+  .todo-text {
+    font-size: 14px;
+    padding: 7px 4px;
+  }
+
+  #brainDump {
+    height: 120px;
+    min-height: 120px;
+    max-height: 120px;
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  #page-home .card:nth-child(1) {
+    margin-bottom: 8px;
+  }
+
+  #page-home .card:nth-child(2) {
+    margin-bottom: 8px;
+  }
+
+  .quote {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  #dateTitle {
+    font-size: 20px;
+  }
+}
 
 </style>
 </head>
