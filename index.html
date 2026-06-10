@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Timebox Planner v1.0.2</title>
+<title>Timebox Planner v1.0.3</title>
 
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#4f46e5" />
@@ -671,10 +671,10 @@ html, body {
 }
 
 #brainDump {
-  height: 150px;
-  min-height: 150px;
-  max-height: 150px;
-  resize: none;
+  height:300px;
+  min-height:300px;
+  max-height:300px;
+  resize:none;
 }
 
 #brainCategory {
@@ -727,12 +727,12 @@ html, body {
     padding: 7px 4px;
   }
 
-  #brainDump {
-    height: 120px;
-    min-height: 120px;
-    max-height: 120px;
-    font-size: 14px;
-    padding: 10px;
+  #brainDump{
+    height:180px !important;
+    min-height:180px !important;
+    max-height:180px !important;
+    font-size:14px;
+    padding:10px;
   }
 
   #page-home .card:nth-child(1) {
@@ -798,9 +798,9 @@ html, body {
   }
 
   #brainDump{
-    height:90px !important;
-    min-height:90px !important;
-    max-height:90px !important;
+    height:180px !important;
+    min-height:180px !important;
+    max-height:180px !important;
     resize:none;
   }
 
@@ -898,6 +898,24 @@ html, body {
   }
 }
 
+
+/* === v1.0.3: BRAIN DUMP / TIME BOX 접힘 해제 === */
+#brainDump{
+  height:300px;
+  min-height:300px;
+  max-height:300px;
+  resize:none;
+}
+
+@media (max-width:600px){
+  #brainDump{
+    height:180px !important;
+    min-height:180px !important;
+    max-height:180px !important;
+    resize:none;
+  }
+}
+
 </style>
 </head>
 
@@ -965,58 +983,48 @@ html, body {
           <div id="todoList"></div>
         </div>
 
-        <div class="card fold-card">
-          <details id="brainFold" class="fold-section">
-            <summary class="fold-summary">
-              <div class="section-title">
-                <svg class="ico c-purple" viewBox="0 0 24 24">
-                  <path d="M9.5 2a3.5 3.5 0 0 0-3.2 5.1A3.5 3.5 0 0 0 6 14.5V16a2 2 0 0 0 2 2h1"/>
-                  <path d="M14.5 2a3.5 3.5 0 0 1 3.2 5.1A3.5 3.5 0 0 1 18 14.5V16a2 2 0 0 1-2 2h-1"/>
-                  <path d="M10 22v-2"/>
-                  <path d="M14 22v-2"/>
-                </svg>
-                <div>BRAIN DUMP</div>
-              </div>
-              <span class="fold-arrow">⌄</span>
-            </summary>
+        <div class="card">
+          <div class="section-title" style="margin-bottom:10px">
+            <svg class="ico c-purple" viewBox="0 0 24 24">
+              <path d="M9.5 2a3.5 3.5 0 0 0-3.2 5.1A3.5 3.5 0 0 0 6 14.5V16a2 2 0 0 0 2 2h1"/>
+              <path d="M14.5 2a3.5 3.5 0 0 1 3.2 5.1A3.5 3.5 0 0 1 18 14.5V16a2 2 0 0 1-2 2h-1"/>
+              <path d="M10 22v-2"/>
+              <path d="M14 22v-2"/>
+            </svg>
+            <div>BRAIN DUMP</div>
+          </div>
 
-            <textarea id="brainDump" placeholder="떠오르는 생각, 아이디어를 자유롭게 적어보세요..."></textarea>
+          <textarea id="brainDump" placeholder="떠오르는 생각, 아이디어를 자유롭게 적어보세요..."></textarea>
 
-            <div class="row" style="margin-top:8px">
-              <select id="brainCategory"></select>
-              <button id="sendBrainToBoard" class="icon-btn primary" title="게시판 저장">
-                <svg class="icon-mini" viewBox="0 0 24 24">
-                  <path d="M4 5h16v14H4z"/>
-                  <path d="M8 9h8"/>
-                  <path d="M8 13h5"/>
-                  <path d="M12 17l3-3 3 3"/>
-                </svg>
-              </button>
-            </div>
+          <div class="row" style="margin-top:8px">
+            <select id="brainCategory"></select>
+            <button id="sendBrainToBoard" class="icon-btn primary" title="게시판 저장">
+              <svg class="icon-mini" viewBox="0 0 24 24">
+                <path d="M4 5h16v14H4z"/>
+                <path d="M8 9h8"/>
+                <path d="M8 13h5"/>
+                <path d="M12 17l3-3 3 3"/>
+              </svg>
+            </button>
+          </div>
 
-            <div class="small">
-              저장하면 Brain Dump 내용이 게시판에 등록되고, 오늘 메모는 비워집니다.
-            </div>
-          </details>
+          <div class="small">
+            저장하면 Brain Dump 내용이 게시판에 등록되고, 오늘 메모는 비워집니다.
+          </div>
         </div>
       </div>
 
       <div>
-        <div class="card fold-card">
-          <details id="timeboxFold" class="fold-section">
-            <summary class="fold-summary">
-              <div class="section-title">
-                <svg class="ico c-blue" viewBox="0 0 24 24">
-                  <path d="M12 6v6l4 2"/>
-                  <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z"/>
-                </svg>
-                <div>TIME BOX</div>
-              </div>
-              <span class="fold-arrow">⌄</span>
-            </summary>
+        <div class="card">
+          <div class="section-title" style="margin-bottom:10px">
+            <svg class="ico c-blue" viewBox="0 0 24 24">
+              <path d="M12 6v6l4 2"/>
+              <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z"/>
+            </svg>
+            <div>TIME BOX</div>
+          </div>
 
-            <div id="timeBox" class="timebox-grid"></div>
-          </details>
+          <div id="timeBox" class="timebox-grid"></div>
         </div>
 
         <div class="card">
@@ -1179,7 +1187,7 @@ html, body {
     </div>
 
     <div class="card" style="text-align:center;color:#9ca3af;font-size:12px;font-weight:700;">
-      Timebox Planner v1.0.2<br>Build 2026-06-10
+      Timebox Planner v1.0.3<br>Build 2026-06-10
     </div>
 
   </main>
@@ -1334,18 +1342,8 @@ function init(){
   fillCategories();
   renderAll();
   bindEvents();
-  setupFoldSections();
-  window.addEventListener("resize",setupFoldSections);
 }
 
-function setupFoldSections(){
-  const isMobile=window.matchMedia("(max-width:600px)").matches;
-  ["brainFold","timeboxFold"].forEach(id=>{
-    const el=$(id);
-    if(!el)return;
-    el.open=!isMobile;
-  });
-}
 
 function isoDate(d){
   const dt=new Date(d);
