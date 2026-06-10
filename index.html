@@ -33,7 +33,8 @@ body{
   font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
   background:var(--bg);
   color:var(--text);
-  padding-bottom:86px;
+  padding-bottom:calc(96px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
 }
 
 .wrap{
@@ -646,6 +647,52 @@ select:focus{
 .reset-btn svg{
   stroke:#DC2626;
 }
+
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 100%;
+  padding: 16px 14px 96px;
+  overflow-x: hidden;
+}
+
+.card {
+  width: 100%;
+  overflow: hidden;
+}
+
+#page-home {
+  padding-bottom: 96px;
+}
+
+#brainDump {
+  height: 150px;
+  min-height: 150px;
+  max-height: 150px;
+  resize: none;
+}
+
+#brainCategory {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+#sendBrainToBoard {
+  flex: 0 0 42px;
+}
+
+.bottom-nav {
+  height: calc(76px + env(safe-area-inset-bottom));
+}
+
+
+
 </style>
 </head>
 
