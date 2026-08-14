@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Timebox Planner v1.0.7</title>
+<title>Timebox Planner v1.0.8</title>
 
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#4f46e5" />
@@ -1087,6 +1087,27 @@ html, body {
   display:none;
 }
 
+
+
+/* === v1.0.8: 외부 백업 안전장치 === */
+.backup-status-box{
+  margin:10px 0 12px; padding:12px; border-radius:14px;
+  background:#f8fafc; border:1px solid #e5e7eb;
+}
+.backup-status-line{display:flex;align-items:center;gap:8px;font-weight:900;margin-bottom:4px}
+.backup-dot{width:11px;height:11px;border-radius:50%;background:#9ca3af;flex:0 0 auto}
+.backup-dot.ok{background:#16a34a}.backup-dot.warn{background:#f59e0b}.backup-dot.danger{background:#ef4444}
+.backup-meta{font-size:12px;color:#6b7280;line-height:1.55}
+.backup-primary{background:#166534!important;color:#fff!important}
+.backup-primary:hover{filter:brightness(.96)}
+.backup-reminder{position:fixed;inset:0;z-index:9999;background:rgba(17,24,39,.55);display:none;align-items:center;justify-content:center;padding:18px}
+.backup-reminder.show{display:flex}
+.backup-reminder-card{width:min(430px,100%);background:#fff;border-radius:20px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.24)}
+.backup-reminder-title{font-size:20px;font-weight:950;margin-bottom:8px}
+.backup-reminder-text{font-size:14px;line-height:1.6;color:#4b5563;white-space:pre-line}
+.backup-reminder-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.backup-reminder-actions .setting-btn{flex:1 1 150px;margin:0}
+
 </style>
 </head>
 
@@ -1310,7 +1331,19 @@ html, body {
         <span>자료 백업</span>
       </div>
 
-      <p class="small">휴대폰에 JSON 파일로 저장하거나 저장해 둔 파일을 다시 불러올 수 있습니다.</p>
+      <p class="small">평소 자료는 자동 저장됩니다. 중요한 외부 백업은 휴대폰 파일과 메일에 함께 보관하세요.</p>
+
+      <div class="backup-status-box">
+        <div class="backup-status-line"><span id="backupStatusDot" class="backup-dot"></span><span id="backupStatusText">백업 상태 확인 중…</span></div>
+        <div id="backupStatusMeta" class="backup-meta"></div>
+      </div>
+
+      <button id="safeBackupBtn" class="setting-btn backup-btn backup-primary">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M5 18h14"/><path d="M7 21h10"/>
+        </svg>
+        <span>안전 백업 · 휴대폰 저장 + 메일 공유</span>
+      </button>
 
       <button id="exportBtn" class="setting-btn backup-btn">
         <svg viewBox="0 0 24 24">
@@ -1318,7 +1351,7 @@ html, body {
           <path d="M8 11l4 4 4-4"/>
           <path d="M5 19h14"/>
         </svg>
-        <span>백업파일 저장</span>
+        <span>휴대폰에만 백업 저장</span>
       </button>
 
       <label class="setting-btn backup-btn" for="importFile">
@@ -1327,10 +1360,13 @@ html, body {
           <path d="M8 13l4-4 4 4"/>
           <path d="M5 5h14"/>
         </svg>
-        <span>백업파일 불러오기</span>
+        <span>백업파일에서 복원</span>
       </label>
 
       <input id="importFile" type="file" accept="application/json" class="hide">
+      <div class="small" style="margin-top:10px;line-height:1.55">
+        권장: 매주 1회 <b>안전 백업</b>을 누른 뒤 공유창에서 Gmail을 선택해 자기 메일로 보내세요. 매월 첫 실행 때는 월간 보관본도 안내합니다.
+      </div>
     </div>
 
     <div class="card setting-section">
@@ -1358,11 +1394,22 @@ html, body {
     </div>
 
     <div class="card" style="text-align:center;color:#9ca3af;font-size:12px;font-weight:700;">
-      Timebox Planner v1.0.7<br>Build 2026-06-10
+      Timebox Planner v1.0.8<br>Build 2026-08-14
     </div>
 
   </main>
 
+</div>
+
+<div id="backupReminderModal" class="backup-reminder" role="dialog" aria-modal="true" aria-labelledby="backupReminderTitle">
+  <div class="backup-reminder-card">
+    <div id="backupReminderTitle" class="backup-reminder-title">🔒 플래너 백업이 필요합니다</div>
+    <div id="backupReminderText" class="backup-reminder-text"></div>
+    <div class="backup-reminder-actions">
+      <button id="backupReminderNow" class="setting-btn backup-btn backup-primary" type="button">지금 안전 백업</button>
+      <button id="backupReminderLater" class="setting-btn backup-btn" type="button">나중에</button>
+    </div>
+  </div>
 </div>
 
 <nav class="bottom-nav">
@@ -1497,6 +1544,7 @@ let CATEGORIES=["전체",...categoryItems,"중요"];
 const TIMEBOX=["오전","오후","저녁","오늘 집중"];
 
 const K_DAILY="tbp_dailyData_v2";
+const K_BACKUP_META="tbp_backup_meta_v1";
 const K_YEAR="tbp_yearGoals_v1";
 const K_MONTH="tbp_monthGoals_v1";
 const K_WEEK="tbp_weekGoals_v1";
@@ -1525,6 +1573,8 @@ function init(){
   fillCategories();
   renderAll();
   bindEvents();
+  renderBackupStatus();
+  setTimeout(checkBackupReminder,700);
 }
 
 
@@ -1855,8 +1905,11 @@ function bindEvents(){
     if(del)deletePost(Number(del.dataset.delPost));
   });
 
-  $("exportBtn").onclick=exportData;
+  $("exportBtn").onclick=()=>exportData({markExternal:true});
+  $("safeBackupBtn").onclick=runSafeBackup;
   $("importFile").addEventListener("change",importData);
+  $("backupReminderNow").onclick=async()=>{ hideBackupReminder(); await runSafeBackup(); };
+  $("backupReminderLater").onclick=hideBackupReminder;
 
   $("clearAllBtn").onclick=clearAll;
   $("saveCategoriesBtn").onclick=saveCategories;
@@ -2141,9 +2194,18 @@ function deletePost(id){
   renderBoard();
 }
 
-function exportData(){
-  const data={
-    version:2,
+function backupMeta(){
+  return loadJSON(K_BACKUP_META,{lastExternalAt:null,lastSharedAt:null,lastMonthlyArchive:null});
+}
+
+function saveBackupMeta(meta){
+  saveJSON(K_BACKUP_META,meta);
+}
+
+function buildBackupData(){
+  return {
+    version:3,
+    appVersion:"1.0.8",
     exportedAt:new Date().toISOString(),
     dailyData,
     yearlyGoals,
@@ -2152,15 +2214,119 @@ function exportData(){
     boardPosts,
     categoryItems
   };
+}
 
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+function backupFile(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,"0");
+  const stamp=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const text=JSON.stringify(buildBackupData(),null,2);
+  return new File([text],`Timebox_backup_${stamp}.json`,{type:"application/json"});
+}
+
+function downloadBackupFile(file){
+  const url=URL.createObjectURL(file);
   const a=document.createElement("a");
-
-  a.href=URL.createObjectURL(blob);
-  a.download=`timeplanner_backup_${selectedDate}.json`;
+  a.href=url;
+  a.download=file.name;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
 
-  URL.revokeObjectURL(a.href);
+function markExternalBackup(shared=false){
+  const now=new Date();
+  const meta=backupMeta();
+  meta.lastExternalAt=now.toISOString();
+  meta.lastMonthlyArchive=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  if(shared)meta.lastSharedAt=now.toISOString();
+  saveBackupMeta(meta);
+  renderBackupStatus();
+}
+
+function exportData(opts={}){
+  const file=backupFile();
+  downloadBackupFile(file);
+  if(opts.markExternal!==false)markExternalBackup(false);
+  return file;
+}
+
+async function runSafeBackup(){
+  const file=backupFile();
+  downloadBackupFile(file);
+  markExternalBackup(false);
+
+  const shareData={
+    files:[file],
+    title:"Timebox Planner 백업",
+    text:"Timebox Planner 백업 파일입니다. Gmail을 선택해 자기 메일로 보내 보관하세요."
+  };
+
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+    try{
+      await navigator.share(shareData);
+      markExternalBackup(true);
+      alert("휴대폰에 백업파일을 저장했고 공유도 완료했습니다.\nGmail을 선택했다면 메일함에서도 보관됩니다.");
+      return;
+    }catch(err){
+      if(err && err.name==="AbortError"){
+        alert("휴대폰 백업파일은 저장되었습니다.\n메일 백업은 취소되었습니다. 필요하면 안전 백업을 다시 눌러 Gmail로 공유하세요.");
+        return;
+      }
+    }
+  }
+
+  alert("휴대폰에 백업파일은 저장했습니다.\n이 기기에서는 파일 공유를 자동으로 열 수 없습니다. Gmail에서 방금 저장된 JSON 파일을 첨부해 자기 메일로 보내 주세요.");
+}
+
+function formatBackupTime(iso){
+  if(!iso)return "없음";
+  const d=new Date(iso);
+  return d.toLocaleString("ko-KR",{year:"numeric",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+function backupAgeDays(iso){
+  if(!iso)return Infinity;
+  return Math.floor((Date.now()-new Date(iso).getTime())/86400000);
+}
+
+function renderBackupStatus(){
+  const text=$("backupStatusText"), metaEl=$("backupStatusMeta"), dot=$("backupStatusDot");
+  if(!text||!metaEl||!dot)return;
+  const meta=backupMeta();
+  const days=backupAgeDays(meta.lastExternalAt);
+  dot.className="backup-dot "+(days<=3?"ok":days<7?"warn":"danger");
+  text.textContent=!Number.isFinite(days)
+    ?"외부 백업 기록이 없습니다"
+    :days===0?"오늘 외부 백업 완료":`${days}일 전 외부 백업`;
+  metaEl.textContent=`마지막 휴대폰 백업: ${formatBackupTime(meta.lastExternalAt)} · 마지막 메일/공유: ${formatBackupTime(meta.lastSharedAt)}`;
+}
+
+function showBackupReminder(message){
+  const modal=$("backupReminderModal");
+  if(!modal)return;
+  $("backupReminderText").textContent=message;
+  modal.classList.add("show");
+}
+
+function hideBackupReminder(){
+  $("backupReminderModal")?.classList.remove("show");
+}
+
+function checkBackupReminder(){
+  const meta=backupMeta();
+  const days=backupAgeDays(meta.lastExternalAt);
+  const now=new Date();
+  const thisMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  const monthlyDue=meta.lastMonthlyArchive!==thisMonth;
+  const weeklyDue=!Number.isFinite(days)||days>=7;
+
+  if(monthlyDue){
+    showBackupReminder(`새 달의 첫 외부 백업이 아직 없습니다.\n\n이번 달 보관본을 휴대폰과 Gmail에 남겨두면 Chrome 데이터 삭제나 휴대폰 문제에도 복원할 수 있습니다.${Number.isFinite(days)?`\n\n마지막 외부 백업: ${days}일 전`:"\n\n아직 외부 백업 기록이 없습니다."}`);
+  }else if(weeklyDue){
+    showBackupReminder(`마지막 외부 백업 후 ${Number.isFinite(days)?days+"일":"7일 이상"} 지났습니다.\n\n지금 백업하면 JSON 파일을 휴대폰에 저장하고 Gmail 등으로 공유할 수 있습니다.`);
+  }
 }
 
 function importData(e){
@@ -2192,8 +2358,9 @@ function importData(e){
 
       fillCategories();
       renderAll();
+      markExternalBackup(false);
 
-      alert("복원했습니다.");
+      alert("복원했습니다. 불러온 파일을 외부 백업으로 확인했습니다.");
     }catch(err){
       alert("백업 파일을 읽을 수 없습니다.");
     }
