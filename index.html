@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Timebox Planner v1.0.8</title>
+<title>Timebox Planner v1.1.0</title>
 
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#4f46e5" />
@@ -1108,7 +1108,21 @@ html, body {
 .backup-reminder-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 .backup-reminder-actions .setting-btn{flex:1 1 150px;margin:0}
 
+.drive-status-box{border:1px solid #dbeafe;background:#f8fbff;border-radius:14px;padding:12px;margin:10px 0 12px}
+.drive-status-line{display:flex;align-items:center;gap:8px;font-weight:900;margin-bottom:5px}
+.drive-dot{width:11px;height:11px;border-radius:50%;background:#9ca3af;flex:0 0 auto}
+.drive-dot.ok{background:#16a34a}.drive-dot.warn{background:#f59e0b}.drive-dot.danger{background:#ef4444}
+.drive-meta{font-size:12px;color:#6b7280;line-height:1.55}
+.drive-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.drive-actions .setting-btn{margin:0}
+.drive-restore-row{display:flex;gap:8px;align-items:stretch;margin-top:10px}
+.drive-restore-row select{flex:1;min-width:0;border:1px solid #d1d5db;border-radius:12px;padding:10px;background:#fff;font:inherit}
+.drive-help{font-size:12px;color:#6b7280;line-height:1.6;margin-top:10px}
+@media(max-width:520px){.drive-actions{grid-template-columns:1fr}.drive-restore-row{flex-direction:column}}
+
+
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -1321,6 +1335,37 @@ html, body {
       </button>
     </div>
 
+
+    <div class="card setting-section">
+      <div class="setting-title backup-title">
+        <svg viewBox="0 0 24 24">
+          <path d="M8 18h8"/><path d="M6 15l6-11 6 11"/><path d="M5 15h14"/>
+        </svg>
+        <span>Google Drive 자동 백업</span>
+      </div>
+      <p class="small">Google 계정을 연결하면 <b>내 드라이브의 “Timebox Planner Backups” 폴더</b>에 날짜별 JSON 백업을 저장합니다. 같은 날에는 같은 백업파일을 최신 상태로 갱신하고, 최근 30개 복원본을 보관합니다.</p>
+      <div class="drive-status-box">
+        <div class="drive-status-line"><span id="driveStatusDot" class="drive-dot"></span><span id="driveStatusText">Google Drive 상태 확인 중…</span></div>
+        <div id="driveStatusMeta" class="drive-meta"></div>
+      </div>
+      <div class="drive-actions">
+        <button id="connectDriveBtn" class="setting-btn backup-btn backup-primary" type="button"><span>Google 계정 연결</span></button>
+        <button id="driveBackupNowBtn" class="setting-btn backup-btn" type="button"><span>지금 Drive 백업</span></button>
+        <button id="driveRefreshBtn" class="setting-btn backup-btn" type="button"><span>Drive 백업목록 새로고침</span></button>
+        <button id="disconnectDriveBtn" class="setting-btn backup-btn" type="button"><span>Google 연결 해제</span></button>
+      </div>
+      <div class="drive-restore-row">
+        <select id="driveBackupSelect" aria-label="Google Drive 백업 선택">
+          <option value="">Drive 백업을 불러오면 여기에 표시됩니다</option>
+        </select>
+        <button id="driveRestoreBtn" class="setting-btn backup-btn" type="button"><span>선택 백업 복원</span></button>
+      </div>
+      <div class="drive-help">
+        ※ 앱 개발자는 Google Cloud에서 OAuth 웹 클라이언트 ID를 한 번 설정해야 합니다. 일반 사용자는 “Google 계정 연결 → 허용”만 하면 됩니다.<br>
+        ※ 브라우저 보안상 Google 접근 토큰은 영구 저장하지 않습니다. 앱을 새로 시작했거나 토큰이 만료되면 “Google 계정 연결”을 다시 한 번 눌러야 할 수 있습니다. 연결된 세션에서는 데이터 변경 후 Drive 백업이 자동 갱신됩니다.
+      </div>
+    </div>
+
     <div class="card setting-section">
       <div class="setting-title backup-title">
         <svg viewBox="0 0 24 24">
@@ -1394,7 +1439,7 @@ html, body {
     </div>
 
     <div class="card" style="text-align:center;color:#9ca3af;font-size:12px;font-weight:700;">
-      Timebox Planner v1.0.8<br>Build 2026-08-14
+      Timebox Planner v1.1.0<br>Build 2026-08-14
     </div>
 
   </main>
@@ -1526,7 +1571,7 @@ html, body {
 </div>
 
 <script>
-const APP_VERSION="1.0.7";
+const APP_VERSION="1.1.0";
 const QUOTES=[
   "오늘 할 수 있는 만큼만 하자.",
   "지금 한 칸이면 충분하다.",
@@ -1545,6 +1590,16 @@ const TIMEBOX=["오전","오후","저녁","오늘 집중"];
 
 const K_DAILY="tbp_dailyData_v2";
 const K_BACKUP_META="tbp_backup_meta_v1";
+const K_DRIVE_PREF="tbp_drive_pref_v1";
+const GOOGLE_CLIENT_ID="PASTE_YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
+const DRIVE_SCOPE="https://www.googleapis.com/auth/drive.file";
+const DRIVE_FOLDER_NAME="Timebox Planner Backups";
+let driveTokenClient=null;
+let driveAccessToken="";
+let driveTokenExpiresAt=0;
+let driveTokenPromise=null;
+let driveAutoTimer=null;
+let driveDirty=false;
 const K_YEAR="tbp_yearGoals_v1";
 const K_MONTH="tbp_monthGoals_v1";
 const K_WEEK="tbp_weekGoals_v1";
@@ -1574,7 +1629,9 @@ function init(){
   renderAll();
   bindEvents();
   renderBackupStatus();
+  renderDriveStatus();
   setTimeout(checkBackupReminder,700);
+  setTimeout(()=>{ if(drivePref().enabled) refreshDriveBackupList(false); },1400);
 }
 
 
@@ -1592,6 +1649,10 @@ function loadJSON(k,f){
 function saveJSON(k,v){
   try{
     localStorage.setItem(k,JSON.stringify(v));
+    if([K_DAILY,K_YEAR,K_MONTH,K_WEEK,K_BOARD,"tbp_categories_v1"].includes(k)){
+      driveDirty=true;
+      scheduleAutoDriveBackup();
+    }
     return true;
   }catch(e){
     const isQuota=e&&(e.name==="QuotaExceededError"||e.name==="NS_ERROR_DOM_QUOTA_REACHED"||e.code===22);
@@ -1911,6 +1972,12 @@ function bindEvents(){
   $("backupReminderNow").onclick=async()=>{ hideBackupReminder(); await runSafeBackup(); };
   $("backupReminderLater").onclick=hideBackupReminder;
 
+  $("connectDriveBtn").onclick=connectGoogleDrive;
+  $("driveBackupNowBtn").onclick=()=>driveBackupNow(true);
+  $("driveRefreshBtn").onclick=()=>refreshDriveBackupList(true);
+  $("driveRestoreBtn").onclick=restoreSelectedDriveBackup;
+  $("disconnectDriveBtn").onclick=disconnectGoogleDrive;
+
   $("clearAllBtn").onclick=clearAll;
   $("saveCategoriesBtn").onclick=saveCategories;
 
@@ -2195,7 +2262,7 @@ function deletePost(id){
 }
 
 function backupMeta(){
-  return loadJSON(K_BACKUP_META,{lastExternalAt:null,lastSharedAt:null,lastMonthlyArchive:null});
+  return loadJSON(K_BACKUP_META,{lastExternalAt:null,lastSharedAt:null,lastMonthlyArchive:null,lastDriveAt:null,lastDriveName:null});
 }
 
 function saveBackupMeta(meta){
@@ -2205,7 +2272,7 @@ function saveBackupMeta(meta){
 function buildBackupData(){
   return {
     version:3,
-    appVersion:"1.0.8",
+    appVersion:APP_VERSION,
     exportedAt:new Date().toISOString(),
     dailyData,
     yearlyGoals,
@@ -2329,6 +2396,293 @@ function checkBackupReminder(){
   }
 }
 
+
+function drivePref(){
+  return loadJSON(K_DRIVE_PREF,{enabled:false,consented:false,folderId:null,lastListAt:null});
+}
+function saveDrivePref(pref){
+  try{ localStorage.setItem(K_DRIVE_PREF,JSON.stringify(pref)); }catch{}
+}
+
+function googleClientConfigured(){
+  return GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith("PASTE_") && GOOGLE_CLIENT_ID.includes(".apps.googleusercontent.com");
+}
+
+function waitForGoogleIdentity(timeoutMs=8000){
+  return new Promise((resolve,reject)=>{
+    const start=Date.now();
+    const tick=()=>{
+      if(window.google?.accounts?.oauth2)return resolve(true);
+      if(Date.now()-start>timeoutMs)return reject(new Error("Google 로그인 모듈을 불러오지 못했습니다."));
+      setTimeout(tick,120);
+    };
+    tick();
+  });
+}
+
+async function ensureDriveToken(interactive=true){
+  if(driveAccessToken && Date.now()<driveTokenExpiresAt-60000)return driveAccessToken;
+  if(!interactive)return null;
+  if(!googleClientConfigured())throw new Error("Google OAuth 클라이언트 ID가 아직 설정되지 않았습니다.");
+  await waitForGoogleIdentity();
+  if(driveTokenPromise)return driveTokenPromise;
+
+  driveTokenPromise=new Promise((resolve,reject)=>{
+    const pref=drivePref();
+    driveTokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:GOOGLE_CLIENT_ID,
+      scope:DRIVE_SCOPE,
+      callback:(resp)=>{
+        driveTokenPromise=null;
+        if(resp?.error)return reject(new Error(resp.error_description||resp.error));
+        driveAccessToken=resp.access_token||"";
+        driveTokenExpiresAt=Date.now()+((Number(resp.expires_in)||3500)*1000);
+        const next=drivePref(); next.enabled=true; next.consented=true; saveDrivePref(next);
+        renderDriveStatus();
+        resolve(driveAccessToken);
+      },
+      error_callback:(err)=>{
+        driveTokenPromise=null;
+        reject(new Error(err?.message||err?.type||"Google 계정 연결이 취소되었습니다."));
+      }
+    });
+    try{ driveTokenClient.requestAccessToken({prompt:pref.consented?"":"consent"}); }
+    catch(err){ driveTokenPromise=null; reject(err); }
+  });
+  return driveTokenPromise;
+}
+
+async function driveApi(url,opts={},interactive=true){
+  const token=await ensureDriveToken(interactive);
+  if(!token)throw new Error("Google Drive 연결이 필요합니다.");
+  const headers=new Headers(opts.headers||{});
+  headers.set("Authorization","Bearer "+token);
+  const res=await fetch(url,{...opts,headers});
+  if(res.status===401){ driveAccessToken=""; driveTokenExpiresAt=0; renderDriveStatus(); }
+  if(!res.ok){
+    let detail="";
+    try{ detail=(await res.json())?.error?.message||""; }catch{}
+    throw new Error(detail||`Google Drive 오류 (${res.status})`);
+  }
+  if(res.status===204)return null;
+  const ct=res.headers.get("content-type")||"";
+  return ct.includes("application/json")?res.json():res.text();
+}
+
+function qEscape(s){ return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
+
+async function ensureDriveFolder(interactive=true){
+  const pref=drivePref();
+  if(pref.folderId){
+    try{
+      const info=await driveApi(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(pref.folderId)}?fields=id,name,trashed`,{},interactive);
+      if(info && !info.trashed)return pref.folderId;
+    }catch{}
+  }
+  const q=`name='${qEscape(DRIVE_FOLDER_NAME)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const data=await driveApi(`https://www.googleapis.com/drive/v3/files?spaces=drive&pageSize=10&fields=files(id,name)&q=${encodeURIComponent(q)}`,{},interactive);
+  let folderId=data?.files?.[0]?.id;
+  if(!folderId){
+    const created=await driveApi("https://www.googleapis.com/drive/v3/files?fields=id,name",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:DRIVE_FOLDER_NAME,mimeType:"application/vnd.google-apps.folder"})
+    },interactive);
+    folderId=created.id;
+  }
+  const next=drivePref(); next.folderId=folderId; next.enabled=true; saveDrivePref(next);
+  return folderId;
+}
+
+function driveDailyName(d=new Date()){
+  const pad=n=>String(n).padStart(2,"0");
+  return `Timebox_auto_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
+}
+
+async function findDriveFileByName(folderId,name,interactive=true){
+  const q=`'${qEscape(folderId)}' in parents and name='${qEscape(name)}' and trashed=false`;
+  const data=await driveApi(`https://www.googleapis.com/drive/v3/files?spaces=drive&pageSize=5&fields=files(id,name,createdTime,modifiedTime)&q=${encodeURIComponent(q)}`,{},interactive);
+  return data?.files?.[0]||null;
+}
+
+async function createDriveBackupFile(folderId,name,interactive=true){
+  const boundary="timebox_"+Math.random().toString(36).slice(2);
+  const metadata={name,mimeType:"application/json",parents:[folderId],appProperties:{timeboxBackup:"true",backupKind:"daily"}};
+  const content=JSON.stringify(buildBackupData(),null,2);
+  const body=new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
+    JSON.stringify(metadata),
+    `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n`,
+    content,
+    `\r\n--${boundary}--`
+  ],{type:`multipart/related; boundary=${boundary}`});
+  return driveApi("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,modifiedTime",{
+    method:"POST",headers:{"Content-Type":`multipart/related; boundary=${boundary}`},body
+  },interactive);
+}
+
+async function updateDriveBackupFile(fileId,interactive=true){
+  const content=JSON.stringify(buildBackupData(),null,2);
+  return driveApi(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,modifiedTime`,{
+    method:"PATCH",headers:{"Content-Type":"application/json"},body:content
+  },interactive);
+}
+
+async function listDriveBackups(interactive=true){
+  const folderId=await ensureDriveFolder(interactive);
+  const q=`'${qEscape(folderId)}' in parents and trashed=false and appProperties has { key='timeboxBackup' and value='true' }`;
+  const data=await driveApi(`https://www.googleapis.com/drive/v3/files?spaces=drive&pageSize=100&orderBy=modifiedTime%20desc&fields=files(id,name,createdTime,modifiedTime,size)&q=${encodeURIComponent(q)}`,{},interactive);
+  return data?.files||[];
+}
+
+async function cleanupDriveBackups(files,interactive=true){
+  if(files.length<=30)return;
+  for(const f of files.slice(30)){
+    try{ await driveApi(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(f.id)}`,{method:"DELETE"},interactive); }
+    catch(err){ console.warn("Old Drive backup cleanup failed",err); }
+  }
+}
+
+function markDriveBackup(name){
+  const meta=backupMeta();
+  meta.lastDriveAt=new Date().toISOString();
+  meta.lastDriveName=name||null;
+  saveBackupMeta(meta);
+  driveDirty=false;
+  renderDriveStatus();
+}
+
+async function uploadDriveDailyBackup(interactive=true,showMessage=false){
+  const folderId=await ensureDriveFolder(interactive);
+  const name=driveDailyName();
+  const existing=await findDriveFileByName(folderId,name,interactive);
+  if(existing)await updateDriveBackupFile(existing.id,interactive);
+  else await createDriveBackupFile(folderId,name,interactive);
+  markDriveBackup(name);
+  const files=await listDriveBackups(interactive);
+  await cleanupDriveBackups(files,interactive);
+  populateDriveBackupSelect(files.slice(0,30));
+  if(showMessage)alert(`Google Drive 백업 완료\n${DRIVE_FOLDER_NAME}/${name}`);
+  return true;
+}
+
+function scheduleAutoDriveBackup(){
+  if(!drivePref().enabled)return;
+  clearTimeout(driveAutoTimer);
+  driveAutoTimer=setTimeout(async()=>{
+    if(!driveDirty)return;
+    if(!driveAccessToken || Date.now()>=driveTokenExpiresAt-60000){ renderDriveStatus(); return; }
+    try{ await uploadDriveDailyBackup(false,false); }
+    catch(err){ console.warn("Drive auto backup:",err); renderDriveStatus(err.message); }
+  },8000);
+}
+
+async function connectGoogleDrive(){
+  try{
+    await ensureDriveToken(true);
+    await ensureDriveFolder(true);
+    await refreshDriveBackupList(false);
+    if(driveDirty || backupAgeDays(backupMeta().lastDriveAt)>=1)await uploadDriveDailyBackup(true,false);
+    renderDriveStatus();
+    alert("Google Drive가 연결되었습니다.\n이 세션에서는 데이터가 바뀌면 날짜별 백업파일이 자동 갱신됩니다.");
+  }catch(err){ alert("Google Drive 연결 실패\n"+err.message); renderDriveStatus(err.message); }
+}
+
+async function driveBackupNow(interactive=true){
+  try{ await uploadDriveDailyBackup(interactive,true); }
+  catch(err){ alert("Drive 백업 실패\n"+err.message); renderDriveStatus(err.message); }
+}
+
+function populateDriveBackupSelect(files){
+  const sel=$("driveBackupSelect");
+  if(!sel)return;
+  sel.innerHTML='<option value="">복원할 Drive 백업을 선택하세요</option>';
+  files.forEach(f=>{
+    const op=document.createElement("option");
+    op.value=f.id;
+    const when=f.modifiedTime?new Date(f.modifiedTime).toLocaleString("ko-KR"):"";
+    op.textContent=`${f.name}${when?" · "+when:""}`;
+    sel.appendChild(op);
+  });
+}
+
+async function refreshDriveBackupList(interactive=true){
+  try{
+    if(!driveAccessToken && !interactive){ renderDriveStatus(); return; }
+    const files=await listDriveBackups(interactive);
+    populateDriveBackupSelect(files.slice(0,30));
+    const pref=drivePref(); pref.lastListAt=new Date().toISOString(); saveDrivePref(pref);
+    if(files[0]){
+      const meta=backupMeta();
+      if(!meta.lastDriveAt || new Date(files[0].modifiedTime)>new Date(meta.lastDriveAt)){
+        meta.lastDriveAt=files[0].modifiedTime; meta.lastDriveName=files[0].name; saveBackupMeta(meta);
+      }
+    }
+    renderDriveStatus();
+  }catch(err){
+    if(interactive)alert("Drive 백업 목록을 가져오지 못했습니다.\n"+err.message);
+    renderDriveStatus(err.message);
+  }
+}
+
+async function restoreSelectedDriveBackup(){
+  const id=$("driveBackupSelect")?.value;
+  if(!id){ alert("복원할 Drive 백업을 먼저 선택하세요."); return; }
+  if(!confirm("선택한 Google Drive 백업으로 현재 플래너 자료를 덮어쓸까요?"))return;
+  try{
+    const token=await ensureDriveToken(true);
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,{headers:{Authorization:"Bearer "+token}});
+    if(!res.ok)throw new Error(`다운로드 오류 (${res.status})`);
+    const data=await res.json();
+    applyBackupData(data);
+    alert("Google Drive 백업에서 복원했습니다.");
+  }catch(err){ alert("Drive 복원 실패\n"+err.message); }
+}
+
+function applyBackupData(data){
+  dailyData=data.dailyData||{};
+  yearlyGoals=data.yearlyGoals||{};
+  monthlyGoals=data.monthlyGoals||{};
+  weeklyGoals=data.weeklyGoals||{};
+  boardPosts=data.boardPosts||[];
+  categoryItems=data.categoryItems||DEFAULT_CATEGORIES;
+  saveJSON(K_DAILY,dailyData);
+  saveJSON(K_YEAR,yearlyGoals);
+  saveJSON(K_MONTH,monthlyGoals);
+  saveJSON(K_WEEK,weeklyGoals);
+  saveJSON(K_BOARD,boardPosts);
+  saveJSON("tbp_categories_v1",categoryItems);
+  fillCategories();
+  renderAll();
+}
+
+function renderDriveStatus(extra=""){
+  const dot=$("driveStatusDot"), text=$("driveStatusText"), metaEl=$("driveStatusMeta");
+  if(!dot||!text||!metaEl)return;
+  const meta=backupMeta(), pref=drivePref();
+  if(!googleClientConfigured()){
+    dot.className="drive-dot danger";
+    text.textContent="Google Drive 설정 필요";
+    metaEl.textContent="Google Cloud OAuth 웹 클라이언트 ID를 index.html의 GOOGLE_CLIENT_ID에 입력하세요.";
+    return;
+  }
+  const tokenOK=!!driveAccessToken && Date.now()<driveTokenExpiresAt-60000;
+  if(tokenOK){ dot.className="drive-dot ok"; text.textContent="Google Drive 연결됨 · 자동 백업 사용 가능"; }
+  else if(pref.enabled){ dot.className="drive-dot warn"; text.textContent="Drive 자동백업 켜짐 · Google 재연결 필요"; }
+  else{ dot.className="drive-dot"; text.textContent="Google Drive가 아직 연결되지 않았습니다"; }
+  metaEl.textContent=`마지막 Drive 백업: ${formatBackupTime(meta.lastDriveAt)}${meta.lastDriveName?" · "+meta.lastDriveName:""}${extra?" · "+extra:""}`;
+}
+
+function disconnectGoogleDrive(){
+  const token=driveAccessToken;
+  driveAccessToken=""; driveTokenExpiresAt=0;
+  const pref=drivePref(); pref.enabled=false; pref.folderId=null; saveDrivePref(pref);
+  populateDriveBackupSelect([]);
+  renderDriveStatus();
+  if(token && window.google?.accounts?.oauth2?.revoke){ try{ google.accounts.oauth2.revoke(token,()=>{}); }catch{} }
+  alert("Google Drive 연결을 해제했습니다.\nDrive에 이미 저장된 백업파일은 삭제되지 않습니다.");
+}
+
 function importData(e){
   const file=e.target.files?.[0];
 
@@ -2342,22 +2696,7 @@ function importData(e){
 
       if(!confirm("현재 자료에 백업 자료를 덮어씁니다. 진행할까요?"))return;
 
-      dailyData=data.dailyData||{};
-      yearlyGoals=data.yearlyGoals||{};
-      monthlyGoals=data.monthlyGoals||{};
-      weeklyGoals=data.weeklyGoals||{};
-      boardPosts=data.boardPosts||[];
-      categoryItems=data.categoryItems||DEFAULT_CATEGORIES;
-
-      saveJSON(K_DAILY,dailyData);
-      saveJSON(K_YEAR,yearlyGoals);
-      saveJSON(K_MONTH,monthlyGoals);
-      saveJSON(K_WEEK,weeklyGoals);
-      saveJSON(K_BOARD,boardPosts);
-      saveJSON("tbp_categories_v1",categoryItems);
-
-      fillCategories();
-      renderAll();
+      applyBackupData(data);
       markExternalBackup(false);
 
       alert("복원했습니다. 불러온 파일을 외부 백업으로 확인했습니다.");
