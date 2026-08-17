@@ -1168,27 +1168,6 @@ html, body {
 }
 
 
-/* === Compact public app/OAuth information === */
-.public-app-footer{
-  margin:18px auto 82px;
-  padding:6px 10px;
-  text-align:center;
-  font-size:11px;
-  line-height:1.5;
-  color:#9ca3af;
-}
-.public-app-footer .app-note{
-  margin-bottom:3px;
-}
-.public-app-footer a{
-  color:#8b8fa3;
-  text-decoration:none;
-  margin:0 5px;
-}
-.public-app-footer a:hover{
-  text-decoration:underline;
-}
-
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -1416,7 +1395,7 @@ html, body {
         <div id="driveStatusMeta" class="drive-meta"></div>
       </div>
       <div class="drive-actions">
-        <button id="connectDriveBtn" class="setting-btn backup-btn backup-primary" type="button"><span>Google 계정 연결</span></button>
+        <button id="connectDriveBtn" class="setting-btn backup-btn backup-primary" type="button"><span>Google 계정 연결 (등록 사용자)</span></button>
         <button id="driveBackupNowBtn" class="setting-btn backup-btn" type="button"><span>지금 Drive 백업</span></button>
         <button id="driveRefreshBtn" class="setting-btn backup-btn" type="button"><span>Drive 백업목록 새로고침</span></button>
         <button id="disconnectDriveBtn" class="setting-btn backup-btn" type="button"><span>Google 연결 해제</span></button>
@@ -1428,8 +1407,10 @@ html, body {
         <button id="driveRestoreBtn" class="setting-btn backup-btn" type="button"><span>선택 백업 복원</span></button>
       </div>
       <div class="drive-help">
-        ※ 앱 개발자는 Google Cloud에서 OAuth 웹 클라이언트 ID를 한 번 설정해야 합니다. 일반 사용자는 “Google 계정 연결 → 허용”만 하면 됩니다.<br>
-        ※ 브라우저 보안상 Google 접근 토큰은 영구 저장하지 않습니다. 앱을 새로 시작했거나 토큰이 만료되면 “Google 계정 연결”을 다시 한 번 눌러야 할 수 있습니다. 연결된 세션에서는 데이터 변경 후 Drive 백업이 자동 갱신됩니다.
+        <b>※ Google Drive 백업은 현재 등록된 테스트 사용자만 이용할 수 있습니다.</b><br>
+        처음 사용하는 분은 플래너 자체는 로그인 없이 바로 사용할 수 있으며, 자료는 이 브라우저에 자동 저장됩니다.<br>
+        Google Drive 백업을 사용하려면 개발자에게 <b>본인이 사용할 Google 계정(Gmail 주소)</b> 등록을 요청한 뒤 “Google 계정 연결”을 눌러 주세요.<br>
+        ※ 브라우저 보안상 Google 접근 토큰은 영구 저장하지 않습니다. 앱을 새로 시작했거나 토큰이 만료되면 다시 연결해야 할 수 있습니다. 연결된 세션에서는 데이터 변경 후 Drive 백업이 자동 갱신됩니다.
       </div>
     </div>
 
@@ -1523,21 +1504,6 @@ html, body {
     </div>
   </div>
 </div>
-
-
-<footer class="public-app-footer" aria-label="앱 정보 및 정책">
-  <div class="app-note">
-    Timebox Planner · 로그인 없이 사용 가능 · Google Drive 백업은 선택사항
-  </div>
-  <div>
-    <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
-    <span>·</span>
-    <a href="./terms.html" target="_blank" rel="noopener noreferrer">이용약관</a>
-    <span>·</span>
-    <a href="mailto:gjk0222@naver.com">문의</a>
-  </div>
-</footer>
-
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="home">
     <svg class="icon" viewBox="0 0 100 100">
