@@ -1121,12 +1121,73 @@ html, body {
 @media(max-width:520px){.drive-actions{grid-template-columns:1fr}.drive-restore-row{flex-direction:column}}
 
 
+
+/* === Google OAuth 브랜딩/홈페이지 검토용 공개 안내 === */
+.public-app-info{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.public-app-info-title{
+  font-size:18px;
+  font-weight:950;
+  margin:0 0 6px;
+  color:#111827;
+}
+.public-app-info-text{
+  margin:0;
+  color:#4b5563;
+  font-size:14px;
+  line-height:1.6;
+}
+.public-app-info-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 14px;
+  margin-top:9px;
+  font-size:13px;
+  font-weight:800;
+}
+.public-app-info-links a{
+  color:#4f46e5;
+  text-decoration:none;
+}
+.public-app-info-links a:hover{
+  text-decoration:underline;
+}
+@media (max-width:600px){
+  .public-app-info{
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .public-app-info-title{font-size:17px}
+  .public-app-info-text{font-size:13px}
+}
+
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
 <div class="wrap">
+
+<div class="public-app-info" id="publicAppInfo" aria-label="Timebox Planner 앱 안내">
+  <h1 class="public-app-info-title">Timebox Planner</h1>
+  <p class="public-app-info-text">
+    로그인 없이 바로 사용할 수 있는 개인 일정·할 일·Time Box 플래너입니다.
+    Google 계정 연결은 <strong>본인의 Google Drive에 백업하려는 경우에만 선택적으로</strong> 사용합니다.
+    플래너 기본 데이터는 이 브라우저의 로컬 저장공간에 저장됩니다.
+  </p>
+  <div class="public-app-info-links">
+    <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
+    <a href="./terms.html" target="_blank" rel="noopener noreferrer">서비스 이용약관</a>
+    <a href="mailto:gjk0222@naver.com">개발자 문의</a>
+  </div>
+</div>
+
 
   <div id="quote" class="quote">오늘 할 수 있는 만큼만 하자.</div>
 
