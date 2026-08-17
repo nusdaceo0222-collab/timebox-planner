@@ -1167,29 +1167,35 @@ html, body {
   .public-app-info-text{font-size:13px}
 }
 
+
+/* === Compact public app/OAuth information === */
+.public-app-footer{
+  margin:18px auto 82px;
+  padding:6px 10px;
+  text-align:center;
+  font-size:11px;
+  line-height:1.5;
+  color:#9ca3af;
+}
+.public-app-footer .app-note{
+  margin-bottom:3px;
+}
+.public-app-footer a{
+  color:#8b8fa3;
+  text-decoration:none;
+  margin:0 5px;
+}
+.public-app-footer a:hover{
+  text-decoration:underline;
+}
+
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
 <div class="wrap">
-
-<div class="public-app-info" id="publicAppInfo" aria-label="Timebox Planner 앱 안내">
-  <h1 class="public-app-info-title">Timebox Planner</h1>
-  <p class="public-app-info-text">
-    로그인 없이 바로 사용할 수 있는 개인 일정·할 일·Time Box 플래너입니다.
-    Google 계정 연결은 <strong>본인의 Google Drive에 백업하려는 경우에만 선택적으로</strong> 사용합니다.
-    플래너 기본 데이터는 이 브라우저의 로컬 저장공간에 저장됩니다.
-  </p>
-  <div class="public-app-info-links">
-    <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
-    <a href="./terms.html" target="_blank" rel="noopener noreferrer">서비스 이용약관</a>
-    <a href="mailto:gjk0222@naver.com">개발자 문의</a>
-  </div>
-</div>
-
-
-  <div id="quote" class="quote">오늘 할 수 있는 만큼만 하자.</div>
+<div id="quote" class="quote">오늘 할 수 있는 만큼만 하자.</div>
 
   <div class="card date-card">
     <div class="row-between">
@@ -1517,6 +1523,20 @@ html, body {
     </div>
   </div>
 </div>
+
+
+<footer class="public-app-footer" aria-label="앱 정보 및 정책">
+  <div class="app-note">
+    Timebox Planner · 로그인 없이 사용 가능 · Google Drive 백업은 선택사항
+  </div>
+  <div>
+    <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
+    <span>·</span>
+    <a href="./terms.html" target="_blank" rel="noopener noreferrer">이용약관</a>
+    <span>·</span>
+    <a href="mailto:gjk0222@naver.com">문의</a>
+  </div>
+</footer>
 
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="home">
